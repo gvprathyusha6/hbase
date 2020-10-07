@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.CellComparator;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.HConstants;
@@ -37,6 +35,7 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
+import org.apache.hadoop.hbase.client.TestSplitMetaBasicOperations;
 import org.apache.hadoop.hbase.master.RegionState.State;
 import org.apache.hadoop.hbase.master.assignment.RegionStates;
 import org.apache.hadoop.hbase.master.janitor.CatalogJanitor;
@@ -54,10 +53,12 @@ import org.apache.hadoop.hbase.util.Threads;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Category(LargeTests.class)
 public class TestSplitMetaAssignmentOperations {
-  private static final Log LOG = LogFactory.getLog(TestSplitMetaAssignmentOperations.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestSplitMetaBasicOperations.class);
   private final int NUM_MASTERS = 3;
   private final int NUM_RS = 3;
 
