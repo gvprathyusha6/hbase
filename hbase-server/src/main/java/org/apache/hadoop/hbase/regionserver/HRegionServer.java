@@ -470,9 +470,18 @@ public class HRegionServer extends Thread implements
    * HBASE-18226: This config and hbase.regionserver.hostname are mutually exclusive.
    * Exception will be thrown if both are used.
    */
+  @Deprecated
   @InterfaceAudience.LimitedPrivate(HBaseInterfaceAudience.CONFIG)
   final static String RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY =
     "hbase.regionserver.hostname.disable.master.reversedns";
+
+  /**
+   * HBASE-18226: This config and hbase.regionserver.hostname are mutually exclusive.
+   * Exception will be thrown if both are used.
+   */
+  @InterfaceAudience.LimitedPrivate(HBaseInterfaceAudience.CONFIG)
+  final static String UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY =
+    "hbase.unsafe.regionserver.hostname.disable.master.reversedns";
 
   /**
    * This servers startcode.
@@ -692,10 +701,11 @@ public class HRegionServer extends Thread implements
   // HMaster should override this method to load the specific config for master
   protected String getUseThisHostnameInstead(Configuration conf) throws IOException {
     String hostname = conf.get(RS_HOSTNAME_KEY);
-    if (conf.getBoolean(RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY, false)) {
+    String reverseDNSKey = getReverseDNSConfKey();
+    if (conf.getBoolean(reverseDNSKey, false)) {
       if (!StringUtils.isBlank(hostname)) {
-        String msg = RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY + " and " + RS_HOSTNAME_KEY +
-          " are mutually exclusive. Do not set " + RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY +
+        String msg = reverseDNSKey + " and " + RS_HOSTNAME_KEY +
+          " are mutually exclusive. Do not set " + reverseDNSKey +
           " to true while " + RS_HOSTNAME_KEY + " is used";
         throw new IOException(msg);
       } else {
@@ -704,6 +714,13 @@ public class HRegionServer extends Thread implements
     } else {
       return hostname;
     }
+  }
+
+  private String getReverseDNSConfKey() {
+    if (conf.getTrimmed(UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY) != null) {
+      return UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY;
+    }
+    return RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY;
   }
 
   /**

@@ -143,7 +143,7 @@ public class TestRegionServerHostname {
         LOG.info("Found " + hostName + " on " + ni);
 
         TEST_UTIL.getConfiguration().set(DNS.MASTER_HOSTNAME_KEY, hostName);
-        // "hbase.regionserver.hostname" and "hbase.regionserver.hostname.disable.master.reversedns"
+        // "hbase.regionserver.hostname" and "hbase.unsafe.regionserver.hostname.disable.master.reversedns"
         // are mutually exclusive. Exception should be thrown if both are used.
         TEST_UTIL.getConfiguration().set(DNS.RS_HOSTNAME_KEY, hostName);
         TEST_UTIL.getConfiguration().setBoolean(HRegionServer.RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY, true);
