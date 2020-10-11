@@ -146,7 +146,7 @@ public class TestRegionServerHostname {
         // "hbase.regionserver.hostname" and "hbase.unsafe.regionserver.hostname.disable.master.reversedns"
         // are mutually exclusive. Exception should be thrown if both are used.
         TEST_UTIL.getConfiguration().set(DNS.RS_HOSTNAME_KEY, hostName);
-        TEST_UTIL.getConfiguration().setBoolean(HRegionServer.UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY, true);
+        TEST_UTIL.getConfiguration().setBoolean(HRegionServer.RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY, true);
         try {
           StartMiniClusterOption option = StartMiniClusterOption.builder()
               .numMasters(NUM_MASTERS).numRegionServers(NUM_RS).numDataNodes(NUM_RS).build();
@@ -155,7 +155,7 @@ public class TestRegionServerHostname {
           Throwable t1 = e.getCause();
           Throwable t2 = t1.getCause();
           assertTrue(t1.getMessage()+" - "+t2.getMessage(), t2.getMessage().contains(
-            HRegionServer.UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY + " and " +
+            HRegionServer.RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY + " and " +
                 DNS.RS_HOSTNAME_KEY + " are mutually exclusive"));
           return;
         } finally {
