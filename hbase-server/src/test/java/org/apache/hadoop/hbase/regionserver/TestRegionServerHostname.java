@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
@@ -129,7 +128,7 @@ public class TestRegionServerHostname {
   }
 
   @Test
-  public void testDeprecatedConfigs() throws IOException {
+  public void testDeprecatedConfigs() throws Exception {
     Configuration conf = TEST_UTIL.getConfiguration();
     new HRegionServer(conf);
     conf.setBoolean(HRegionServer.DEPRECATED_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY, false);
