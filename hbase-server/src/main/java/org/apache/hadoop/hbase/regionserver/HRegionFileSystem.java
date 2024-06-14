@@ -254,7 +254,7 @@ public class HRegionFileSystem {
 
     return null;
   }
-  
+
   /**
    * Returns the store files' LocatedFileStatus which available for the family. This methods
    * performs the filtering based on the valid store files.
@@ -311,12 +311,13 @@ public class HRegionFileSystem {
     return ServerRegionReplicaUtil.getStoreFileInfo(conf, fs, regionInfo, regionInfoForFs,
       familyName, new Path(familyDir, fileName), tracker);
   }
-  
+
   /**
    * Returns true if the specified family has reference files
    * @param familyName Column Family Name
    * @return true if family contains reference files
    */
+  // TODO: move this to SFT
   public boolean hasReferences(final String familyName) throws IOException {
     Path storeDir = getStoreDir(familyName);
     FileStatus[] files = CommonFSUtils.listStatus(fs, storeDir);
@@ -698,7 +699,7 @@ public class HRegionFileSystem {
         }
         // must create back reference here
         HFileLink.create(conf, fs, splitDir, familyName, hri.getTable().getNameAsString(),
-                hri.getEncodedName(), linkedTable, linkedRegion, hfileName, true);
+          hri.getEncodedName(), linkedTable, linkedRegion, hfileName, true);
         Path path =
           new Path(splitDir, HFileLink.createHFileLinkName(linkedTable, linkedRegion, hfileName));
         LOG.info("Created linkFile:" + path.toString() + " for child: " + hri.getEncodedName()

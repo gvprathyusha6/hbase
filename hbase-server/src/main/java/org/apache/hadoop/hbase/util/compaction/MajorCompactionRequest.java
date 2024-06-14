@@ -103,10 +103,7 @@ class MajorCompactionRequest {
   boolean shouldCFBeCompacted(HRegionFileSystem fileSystem, String family, long ts)
     throws IOException {
     // do we have any store files?
-    TableDescriptor htd =
-      connection.getTable(CommonFSUtils.getTableName(fileSystem.getTableDir())).getDescriptor();
-    StoreFileTracker sft = StoreFileTrackerFactory.create(connection.getConfiguration(), htd,
-      htd.getColumnFamily(family.getBytes()), fileSystem, false);
+    StoreFileTracker sft = getStoreFileTracker(family, fileSystem);
     List<StoreFileInfo> storeFiles = sft.load();
     if (storeFiles == null) {
       LOG.info("Excluding store: " + family + " for compaction for region:  "
@@ -126,6 +123,13 @@ class MajorCompactionRequest {
         + fileSystem.getRegionInfo().getEncodedName() + " already compacted");
     }
     return includeStore;
+  }
+
+  public StoreFileTracker getStoreFileTracker(String family, HRegionFileSystem fileSystem)
+    throws IOException {
+    TableDescriptor htd = connection.getTable(getRegion().getTable()).getDescriptor();
+    return StoreFileTrackerFactory.create(connection.getConfiguration(), htd,
+      htd.getColumnFamily(family.getBytes()), fileSystem, false);
   }
 
   protected boolean shouldIncludeStore(HRegionFileSystem fileSystem, String family,

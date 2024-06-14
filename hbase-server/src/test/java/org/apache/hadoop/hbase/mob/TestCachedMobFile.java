@@ -30,6 +30,9 @@ import org.apache.hadoop.hbase.KeyValue.Type;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
 import org.apache.hadoop.hbase.io.hfile.HFileContext;
 import org.apache.hadoop.hbase.io.hfile.HFileContextBuilder;
+import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.hadoop.hbase.regionserver.HStoreFile;
+import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
 import org.apache.hadoop.hbase.regionserver.StoreFileWriter;
 import org.apache.hadoop.hbase.testclassification.SmallTests;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -69,8 +72,10 @@ public class TestCachedMobFile {
     HFileContext meta = new HFileContextBuilder().withBlockSize(8 * 1024).build();
     StoreFileWriter writer = new StoreFileWriter.Builder(conf, cacheConf, fs).withOutputDir(testDir)
       .withFileContext(meta).build();
+    StoreFileInfo storeFileInfo = new StoreFileInfo(conf, fs, writer.getPath(), true, true);
     MobTestUtil.writeStoreFile(writer, caseName);
-    CachedMobFile cachedMobFile = CachedMobFile.create(fs, writer.getPath(), conf, cacheConf);
+    CachedMobFile cachedMobFile =
+      new CachedMobFile(new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf));
     assertEquals(EXPECTED_REFERENCE_ZERO, cachedMobFile.getReferenceCount());
     cachedMobFile.open();
     assertEquals(EXPECTED_REFERENCE_ONE, cachedMobFile.getReferenceCount());
@@ -93,12 +98,16 @@ public class TestCachedMobFile {
     StoreFileWriter writer1 = new StoreFileWriter.Builder(conf, cacheConf, fs)
       .withOutputDir(outputDir1).withFileContext(meta).build();
     MobTestUtil.writeStoreFile(writer1, caseName);
-    CachedMobFile cachedMobFile1 = CachedMobFile.create(fs, writer1.getPath(), conf, cacheConf);
+    StoreFileInfo storeFileInfo1 = new StoreFileInfo(conf, fs, writer1.getPath(), true, true);
+    CachedMobFile cachedMobFile1 =
+      new CachedMobFile(new HStoreFile(storeFileInfo1, BloomType.NONE, cacheConf));
     Path outputDir2 = new Path(testDir, FAMILY2);
     StoreFileWriter writer2 = new StoreFileWriter.Builder(conf, cacheConf, fs)
       .withOutputDir(outputDir2).withFileContext(meta).build();
     MobTestUtil.writeStoreFile(writer2, caseName);
-    CachedMobFile cachedMobFile2 = CachedMobFile.create(fs, writer2.getPath(), conf, cacheConf);
+    StoreFileInfo storeFileInfo2 = new StoreFileInfo(conf, fs, writer2.getPath(), true, true);
+    CachedMobFile cachedMobFile2 =
+      new CachedMobFile(new HStoreFile(storeFileInfo2, BloomType.NONE, cacheConf));
     cachedMobFile1.access(1);
     cachedMobFile2.access(2);
     assertEquals(1, cachedMobFile1.compareTo(cachedMobFile2));
@@ -115,7 +124,9 @@ public class TestCachedMobFile {
       .withFileContext(meta).build();
     String caseName = testName.getMethodName();
     MobTestUtil.writeStoreFile(writer, caseName);
-    CachedMobFile cachedMobFile = CachedMobFile.create(fs, writer.getPath(), conf, cacheConf);
+    StoreFileInfo storeFileInfo = new StoreFileInfo(conf, fs, writer.getPath(), true, true);
+    CachedMobFile cachedMobFile =
+      new CachedMobFile(new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf));
     byte[] family = Bytes.toBytes(caseName);
     byte[] qualify = Bytes.toBytes(caseName);
     // Test the start key

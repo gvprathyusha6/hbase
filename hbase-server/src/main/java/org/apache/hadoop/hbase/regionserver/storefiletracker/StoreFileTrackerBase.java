@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -47,12 +46,13 @@ import org.apache.hadoop.hbase.regionserver.StoreContext;
 import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
 import org.apache.hadoop.hbase.regionserver.StoreFileWriter;
 import org.apache.hadoop.hbase.regionserver.StoreUtils;
-import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
 import org.apache.hadoop.hbase.util.CommonFSUtils;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
 
 /**
  * Base class for all store file tracker.
@@ -264,48 +264,57 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
   }
 
   @Override
-	public StoreFileInfo getStoreFileInfo(FileStatus fileStatus, Path initialPath, boolean primaryReplica)
-			throws IOException {
-		FileSystem fs = this.ctx.getRegionFileSystem().getFileSystem();
-		assert fs != null;
-		assert initialPath != null;
-		assert conf != null;
-		Reference reference = null;
-		HFileLink link = null;
-		long createdTimestamp = 0;
-		long size = 0;
-		Path p = initialPath;
-		if (HFileLink.isHFileLink(p)) {
-			// HFileLink
-			reference = null;
-			link = HFileLink.buildFromHFileLinkPattern(conf, p);
-			LOG.trace("{} is a link", p);
-		} else if (StoreFileInfo.isReference(p)) {
-			reference = readReference(p);
-			Path referencePath = StoreFileInfo.getReferredToFile(p);
-			if (HFileLink.isHFileLink(referencePath)) {
-				// HFileLink Reference
-				link = HFileLink.buildFromHFileLinkPattern(conf, referencePath);
-			} else {
-				// Reference
-				link = null;
-			}
-			LOG.trace("{} is a {} reference to {}", p, reference.getFileRegion(), referencePath);
-		} else if (StoreFileInfo.isHFile(p) || StoreFileInfo.isMobFile(p) || StoreFileInfo.isMobRefFile(p)) {
-			// HFile
-			if (fileStatus != null) {
-				createdTimestamp = fileStatus.getModificationTime();
-				size = fileStatus.getLen();
-			} else {
-				FileStatus fStatus = fs.getFileStatus(initialPath);
-				createdTimestamp = fStatus.getModificationTime();
-				size = fStatus.getLen();
-			}
-		} else {
-			throw new IOException("path=" + p + " doesn't look like a valid StoreFile");
-		}
-		return new StoreFileInfo(conf, fs, createdTimestamp, initialPath, size, reference, link, isPrimaryReplica);
-	}
+  public StoreFileInfo getStoreFileInfo(Path initialPath, boolean primaryReplica)
+    throws IOException {
+    return getStoreFileInfo(null, initialPath, primaryReplica);
+  }
+
+  @Override
+  public StoreFileInfo getStoreFileInfo(FileStatus fileStatus, Path initialPath,
+    boolean primaryReplica) throws IOException {
+    FileSystem fs = this.ctx.getRegionFileSystem().getFileSystem();
+    assert fs != null;
+    assert initialPath != null;
+    assert conf != null;
+    Reference reference = null;
+    HFileLink link = null;
+    long createdTimestamp = 0;
+    long size = 0;
+    Path p = initialPath;
+    if (HFileLink.isHFileLink(p)) {
+      // HFileLink
+      reference = null;
+      link = HFileLink.buildFromHFileLinkPattern(conf, p);
+      LOG.trace("{} is a link", p);
+    } else if (StoreFileInfo.isReference(p)) {
+      reference = readReference(p);
+      Path referencePath = StoreFileInfo.getReferredToFile(p);
+      if (HFileLink.isHFileLink(referencePath)) {
+        // HFileLink Reference
+        link = HFileLink.buildFromHFileLinkPattern(conf, referencePath);
+      } else {
+        // Reference
+        link = null;
+      }
+      LOG.trace("{} is a {} reference to {}", p, reference.getFileRegion(), referencePath);
+    } else
+      if (StoreFileInfo.isHFile(p) || StoreFileInfo.isMobFile(p) || StoreFileInfo.isMobRefFile(p)) {
+        // HFile
+        if (fileStatus != null) {
+          createdTimestamp = fileStatus.getModificationTime();
+          size = fileStatus.getLen();
+        } else {
+          FileStatus fStatus = fs.getFileStatus(initialPath);
+          createdTimestamp = fStatus.getModificationTime();
+          size = fStatus.getLen();
+        }
+      } else {
+        throw new IOException("path=" + p + " doesn't look like a valid StoreFile");
+      }
+    return new StoreFileInfo(conf, fs, createdTimestamp, initialPath, size, reference, link,
+      isPrimaryReplica);
+  }
+
   /**
    * For primary replica, we will call load once when opening a region, and the implementation could
    * choose to do some cleanup work. So here we use {@code readOnly} to indicate that whether you

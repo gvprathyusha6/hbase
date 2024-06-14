@@ -35,6 +35,7 @@ import org.apache.hadoop.hbase.io.HalfStoreFileReader;
 import org.apache.hadoop.hbase.io.Reference;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
 import org.apache.hadoop.hbase.io.hfile.HFileInfo;
+import org.apache.hadoop.hbase.io.hfile.InvalidHFileException;
 import org.apache.hadoop.hbase.io.hfile.ReaderContext;
 import org.apache.hadoop.hbase.io.hfile.ReaderContext.ReaderType;
 import org.apache.hadoop.hbase.io.hfile.ReaderContextBuilder;
@@ -122,6 +123,33 @@ public class StoreFileInfo implements Configurable {
   public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path initialPath,
     final boolean primaryReplica, final StoreFileTracker sft) throws IOException {
     this(conf, fs, null, initialPath, primaryReplica, sft);
+  }
+
+  public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path initialPath,
+    final boolean primaryReplica, boolean isHfile) throws IOException {
+    if (HFileLink.isHFileLink(initialPath) || isReference(initialPath)) {
+      throw new InvalidHFileException("Path " + initialPath + " is a Hfile link or a Regerence");
+    }
+    assert fs != null;
+    assert initialPath != null;
+    assert conf != null;
+
+    this.fs = fs;
+    this.conf = conf;
+    this.initialPath = fs.makeQualified(initialPath);
+    this.primaryReplica = primaryReplica;
+    this.noReadahead =
+      this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
+    Path p = initialPath;
+    if (isHFile(p) || isMobFile(p) || isMobRefFile(p)) {
+      FileStatus fStatus = fs.getFileStatus(initialPath);
+      this.createdTimestamp = fStatus.getModificationTime();
+      this.size = fStatus.getLen();
+      this.reference = null;
+      this.link = null;
+    } else {
+      throw new IOException("path=" + p + " doesn't look like a valid StoreFile");
+    }
   }
 
   private StoreFileInfo(final Configuration conf, final FileSystem fs, final FileStatus fileStatus,
@@ -214,7 +242,7 @@ public class StoreFileInfo implements Configurable {
     this.noReadahead =
       this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
   }
-  
+
   /**
    * Create a Store File Info from an HFileLink and a Reference
    * @param conf       The {@link Configuration} to use
@@ -223,19 +251,20 @@ public class StoreFileInfo implements Configurable {
    * @param reference  The reference instance
    * @param link       The link instance
    */
-	public StoreFileInfo(final Configuration conf, final FileSystem fs, final long createdTimestamp,
-			final Path initialPath, final long size, final Reference reference, final HFileLink link,
-			final boolean primaryReplica) {
-		this.fs = fs;
-		this.conf = conf;
-		this.primaryReplica = primaryReplica;
-		this.initialPath = initialPath;
-		this.createdTimestamp = createdTimestamp;
-		this.size = size;
-		this.reference = reference;
-		this.link = link;
-		this.noReadahead = this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
-	}
+  public StoreFileInfo(final Configuration conf, final FileSystem fs, final long createdTimestamp,
+    final Path initialPath, final long size, final Reference reference, final HFileLink link,
+    final boolean primaryReplica) {
+    this.fs = fs;
+    this.conf = conf;
+    this.primaryReplica = primaryReplica;
+    this.initialPath = initialPath;
+    this.createdTimestamp = createdTimestamp;
+    this.size = size;
+    this.reference = reference;
+    this.link = link;
+    this.noReadahead =
+      this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
+  }
 
   @Override
   public Configuration getConf() {
@@ -786,6 +815,16 @@ public class StoreFileInfo implements Configurable {
 
   int decreaseRefCount() {
     return this.refCount.decrementAndGet();
+  }
+
+  public static StoreFileInfo createStoreFileInfoForHFile(final Configuration conf,
+    final FileSystem fs, final Path initialPath, final boolean primaryReplica) throws IOException {
+    if (HFileLink.isHFileLink(initialPath) || isReference(initialPath)) {
+      throw new InvalidHFileException("Path " + initialPath + " is a Hfile link or a Regerence");
+    }
+    StoreFileInfo storeFileInfo =
+      new StoreFileInfo(conf, fs, null, initialPath, primaryReplica, null);
+    return storeFileInfo;
   }
 
 }

@@ -30,6 +30,7 @@ import org.apache.hadoop.hbase.CellBuilderType;
 import org.apache.hadoop.hbase.HBaseTestingUtil;
 import org.apache.hadoop.hbase.HDFSBlocksDistribution;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
+import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTracker;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.DNS;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
@@ -53,8 +54,13 @@ public class MockHStoreFile extends HStoreFile {
 
   MockHStoreFile(HBaseTestingUtil testUtil, Path testPath, long length, long ageInDisk,
     boolean isRef, long sequenceid) throws IOException {
+    this(testUtil, testPath, length, ageInDisk, isRef, sequenceid, null);
+  }
+
+  MockHStoreFile(HBaseTestingUtil testUtil, Path testPath, long length, long ageInDisk,
+    boolean isRef, long sequenceid, StoreFileTracker tracker) throws IOException {
     super(testUtil.getTestFileSystem(), testPath, testUtil.getConfiguration(),
-      new CacheConfig(testUtil.getConfiguration()), BloomType.NONE, true);
+      new CacheConfig(testUtil.getConfiguration()), BloomType.NONE, true, tracker);
     this.length = length;
     this.isRef = isRef;
     this.ageInDisk = ageInDisk;

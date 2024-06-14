@@ -20,7 +20,6 @@ package org.apache.hadoop.hbase.regionserver.storefiletracker;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
@@ -102,9 +101,14 @@ public interface StoreFileTracker {
   Reference createReference(Reference reference, Path path) throws IOException;
 
   Reference readReference(Path path) throws IOException;
-  
+
+  // TODO: remove the family name from here
   boolean hasReferences(final String familyName) throws IOException;
-  
-  StoreFileInfo getStoreFileInfo(final FileStatus fileStatus, final Path initialPath, final boolean primaryReplica) throws IOException;
-  
+
+  StoreFileInfo getStoreFileInfo(final FileStatus fileStatus, final Path initialPath,
+    final boolean primaryReplica) throws IOException;
+
+  StoreFileInfo getStoreFileInfo(final Path initialPath, final boolean primaryReplica)
+    throws IOException;
+
 }
