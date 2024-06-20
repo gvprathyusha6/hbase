@@ -124,7 +124,7 @@ public class TestMajorCompactionRequest {
   protected StoreFileTrackerForTest mockSFT(boolean references, List<StoreFileInfo> storeFiles)
     throws IOException {
     StoreFileTrackerForTest sft = mock(StoreFileTrackerForTest.class);
-    doReturn(references).when(sft).hasReferences(anyString());
+    doReturn(references).when(sft).hasReferences();
     doReturn(storeFiles).when(sft).load();
     return sft;
   }

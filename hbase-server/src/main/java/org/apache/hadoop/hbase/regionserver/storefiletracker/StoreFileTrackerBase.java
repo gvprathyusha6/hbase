@@ -217,8 +217,8 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
    * @param familyName Column Family Name
    * @return true if family contains reference files
    */
-  public boolean hasReferences(final String familyName) throws IOException {
-    Path storeDir = ctx.getRegionFileSystem().getStoreDir(familyName);
+  public boolean hasReferences() throws IOException {
+    Path storeDir = ctx.getRegionFileSystem().getStoreDir(ctx.getFamily().getNameAsString());
     FileStatus[] files =
       CommonFSUtils.listStatus(ctx.getRegionFileSystem().getFileSystem(), storeDir);
     if (files != null) {

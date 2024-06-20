@@ -111,7 +111,7 @@ class MajorCompactionRequest {
       return false;
     }
     // check for reference files
-    if (sft.hasReferences(family) && familyHasReferenceFile(fileSystem, family, ts)) {
+    if (sft.hasReferences() && familyHasReferenceFile(fileSystem, family, ts)) {
       LOG.info("Including store: " + family + " with: " + storeFiles.size()
         + " files for compaction for region: " + fileSystem.getRegionInfo().getEncodedName());
       return true;

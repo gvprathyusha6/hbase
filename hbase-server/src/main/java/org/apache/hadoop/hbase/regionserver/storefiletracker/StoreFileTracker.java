@@ -102,8 +102,11 @@ public interface StoreFileTracker {
 
   Reference readReference(Path path) throws IOException;
 
-  // TODO: remove the family name from here
-  boolean hasReferences(final String familyName) throws IOException;
+  /**
+   * Returns true if the specified family has reference files
+   * @return true if family contains reference files
+   */
+  boolean hasReferences() throws IOException;
 
   StoreFileInfo getStoreFileInfo(final FileStatus fileStatus, final Path initialPath,
     final boolean primaryReplica) throws IOException;
