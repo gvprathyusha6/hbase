@@ -229,7 +229,7 @@ public class TestStoreScannerClosure {
     HStoreFile file = null;
     List<HStoreFile> files = new ArrayList<HStoreFile>();
     try {
-      StoreFileInfo storeFileInfo = new StoreFileInfo(CONF, fs, path, true, true);
+      StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(CONF, fs, path, true);
       file = readStoreFile(storeFileInfo);
       files.add(file);
     } catch (Exception e) {

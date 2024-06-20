@@ -59,7 +59,7 @@ public class EncodedSeekPerformanceTest {
 
     // read all of the key values
     StoreFileInfo storeFileInfo =
-      new StoreFileInfo(configuration, testingUtility.getTestFileSystem(), path, true, true);
+    		StoreFileInfo.createStoreFileInfoForHFile(configuration, testingUtility.getTestFileSystem(), path, true);
     HStoreFile storeFile = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     storeFile.initReader();
     StoreFileReader reader = storeFile.getReader();
@@ -89,7 +89,7 @@ public class EncodedSeekPerformanceTest {
     throws IOException {
     // read all of the key values
     StoreFileInfo storeFileInfo =
-      new StoreFileInfo(configuration, testingUtility.getTestFileSystem(), path, true, true);
+    		StoreFileInfo.createStoreFileInfoForHFile(configuration, testingUtility.getTestFileSystem(), path, true);
     HStoreFile storeFile = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     storeFile.initReader();
     long totalSize = 0;

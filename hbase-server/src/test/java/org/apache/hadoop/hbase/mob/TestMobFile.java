@@ -68,7 +68,7 @@ public class TestMobFile {
     String caseName = testName.getMethodName();
     MobTestUtil.writeStoreFile(writer, caseName);
 
-    StoreFileInfo storeFileInfo = new StoreFileInfo(conf, fs, writer.getPath(), true, true);
+    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     MobFile mobFile = new MobFile(new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf));
     byte[] family = Bytes.toBytes(caseName);
     byte[] qualify = Bytes.toBytes(caseName);
@@ -117,7 +117,7 @@ public class TestMobFile {
       .withFileContext(meta).build();
     MobTestUtil.writeStoreFile(writer, testName.getMethodName());
 
-    StoreFileInfo storeFileInfo = new StoreFileInfo(conf, fs, writer.getPath(), true, true);
+    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     MobFile mobFile = new MobFile(new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf));
     assertNotNull(mobFile.getScanner());
     assertTrue(mobFile.getScanner() instanceof StoreFileScanner);

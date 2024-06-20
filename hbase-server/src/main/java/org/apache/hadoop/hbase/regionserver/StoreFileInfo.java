@@ -125,33 +125,6 @@ public class StoreFileInfo implements Configurable {
     this(conf, fs, null, initialPath, primaryReplica, sft);
   }
 
-  public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path initialPath,
-    final boolean primaryReplica, boolean isHfile) throws IOException {
-    if (HFileLink.isHFileLink(initialPath) || isReference(initialPath)) {
-      throw new InvalidHFileException("Path " + initialPath + " is a Hfile link or a Regerence");
-    }
-    assert fs != null;
-    assert initialPath != null;
-    assert conf != null;
-
-    this.fs = fs;
-    this.conf = conf;
-    this.initialPath = fs.makeQualified(initialPath);
-    this.primaryReplica = primaryReplica;
-    this.noReadahead =
-      this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
-    Path p = initialPath;
-    if (isHFile(p) || isMobFile(p) || isMobRefFile(p)) {
-      FileStatus fStatus = fs.getFileStatus(initialPath);
-      this.createdTimestamp = fStatus.getModificationTime();
-      this.size = fStatus.getLen();
-      this.reference = null;
-      this.link = null;
-    } else {
-      throw new IOException("path=" + p + " doesn't look like a valid StoreFile");
-    }
-  }
-
   private StoreFileInfo(final Configuration conf, final FileSystem fs, final FileStatus fileStatus,
     final Path initialPath, final boolean primaryReplica, final StoreFileTracker sft)
     throws IOException {
