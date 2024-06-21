@@ -33,10 +33,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.ArrayBackedTag;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellBuilderType;
 import org.apache.hadoop.hbase.CellComparator;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
+import org.apache.hadoop.hbase.ExtendedCell;
 import org.apache.hadoop.hbase.ExtendedCellBuilderFactory;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
@@ -303,7 +303,7 @@ public class HMobStore extends HStore {
    * @param cacheBlocks Whether the scanner should cache blocks.
    * @return The cell found in the mob file.
    */
-  public MobCell resolve(Cell reference, boolean cacheBlocks) throws IOException {
+  public MobCell resolve(ExtendedCell reference, boolean cacheBlocks) throws IOException {
     return resolve(reference, cacheBlocks, -1, true);
   }
 
@@ -316,8 +316,8 @@ public class HMobStore extends HStore {
    *                                    resolved.
    * @return The cell found in the mob file.
    */
-  public MobCell resolve(Cell reference, boolean cacheBlocks, boolean readEmptyValueOnMobCellMiss)
-    throws IOException {
+  public MobCell resolve(ExtendedCell reference, boolean cacheBlocks,
+    boolean readEmptyValueOnMobCellMiss) throws IOException {
     return resolve(reference, cacheBlocks, -1, readEmptyValueOnMobCellMiss);
   }
 
@@ -331,7 +331,7 @@ public class HMobStore extends HStore {
    *                                    corrupt.
    * @return The cell found in the mob file.
    */
-  public MobCell resolve(Cell reference, boolean cacheBlocks, long readPt,
+  public MobCell resolve(ExtendedCell reference, boolean cacheBlocks, long readPt,
     boolean readEmptyValueOnMobCellMiss) throws IOException {
     MobCell mobCell = null;
     if (MobUtils.hasValidMobRefCellValue(reference)) {
@@ -346,7 +346,7 @@ public class HMobStore extends HStore {
     if (mobCell == null) {
       LOG.warn("The Cell result is null, assemble a new Cell with the same row,family,"
         + "qualifier,timestamp,type and tags but with an empty value to return.");
-      Cell cell = ExtendedCellBuilderFactory.create(CellBuilderType.DEEP_COPY)
+      ExtendedCell cell = ExtendedCellBuilderFactory.create(CellBuilderType.DEEP_COPY)
         .setRow(reference.getRowArray(), reference.getRowOffset(), reference.getRowLength())
         .setFamily(reference.getFamilyArray(), reference.getFamilyOffset(),
           reference.getFamilyLength())
@@ -400,7 +400,7 @@ public class HMobStore extends HStore {
    *                                    corrupt.
    * @return The found cell. Null if there's no such a cell.
    */
-  private MobCell readCell(List<Path> locations, String fileName, Cell search,
+  private MobCell readCell(List<Path> locations, String fileName, ExtendedCell search,
     boolean cacheMobBlocks, long readPt, boolean readEmptyValueOnMobCellMiss) throws IOException {
     FileSystem fs = getFileSystem();
     IOException ioe = null;
