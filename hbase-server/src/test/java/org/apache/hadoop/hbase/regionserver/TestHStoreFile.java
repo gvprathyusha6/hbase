@@ -1003,7 +1003,8 @@ public class TestHStoreFile {
     writer.appendMetadata(0, false);
     writer.close();
 
-    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo =
+      StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     HStoreFile hsf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     HStore store = mock(HStore.class);
     when(store.getColumnFamilyDescriptor()).thenReturn(ColumnFamilyDescriptorBuilder.of(family));
@@ -1058,7 +1059,8 @@ public class TestHStoreFile {
     CacheConfig cacheConf = new CacheConfig(conf, bc);
     Path pathCowOff = new Path(baseDir, "123456789");
     StoreFileWriter writer = writeStoreFile(conf, cacheConf, pathCowOff, 3);
-    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo =
+      StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     HStoreFile hsfCowOff = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     LOG.debug(hsfCowOff.getPath().toString());
 
@@ -1230,7 +1232,8 @@ public class TestHStoreFile {
       .withFilePath(path).withMaxKeyCount(2000).withFileContext(meta).build();
     writer.close();
 
-    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo =
+      StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     HStoreFile storeFile = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     storeFile.initReader();
     StoreFileReader reader = storeFile.getReader();
@@ -1259,7 +1262,8 @@ public class TestHStoreFile {
       .withFilePath(path).withMaxKeyCount(2000).withFileContext(meta).build();
     writeStoreFile(writer);
 
-    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo =
+      StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     HStoreFile storeFile = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     storeFile.initReader();
     StoreFileReader reader = storeFile.getReader();
@@ -1318,7 +1322,8 @@ public class TestHStoreFile {
     writeLargeStoreFile(writer, Bytes.toBytes(name.getMethodName()),
       Bytes.toBytes(name.getMethodName()), 200);
     writer.close();
-    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo =
+      StoreFileInfo.createStoreFileInfoForHFile(conf, fs, writer.getPath(), true);
     HStoreFile storeFile = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     storeFile.initReader();
     HFile.Reader fReader =

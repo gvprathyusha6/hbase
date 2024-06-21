@@ -122,8 +122,8 @@ public class TestReversibleScanners {
           .withOutputDir(hfilePath).withFileContext(hFileContext).build();
       writeStoreFile(writer);
 
-      StoreFileInfo storeFileInfo =
-    		  StoreFileInfo.createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer.getPath(), true);
+      StoreFileInfo storeFileInfo = StoreFileInfo
+        .createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer.getPath(), true);
       HStoreFile sf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
 
       List<StoreFileScanner> scanners = StoreFileScanner.getScannersForStoreFiles(
@@ -174,12 +174,12 @@ public class TestReversibleScanners {
     MemStore memstore = new DefaultMemStore();
     writeMemstoreAndStoreFiles(memstore, new StoreFileWriter[] { writer1, writer2 });
 
-    StoreFileInfo storeFileInfo1 =
-    		StoreFileInfo.createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer1.getPath(), true);
+    StoreFileInfo storeFileInfo1 = StoreFileInfo
+      .createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer1.getPath(), true);
     HStoreFile sf1 = new HStoreFile(storeFileInfo1, BloomType.NONE, cacheConf);
 
-    StoreFileInfo storeFileInfo2 =
-    		StoreFileInfo.createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer2.getPath(), true);
+    StoreFileInfo storeFileInfo2 = StoreFileInfo
+      .createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer2.getPath(), true);
     HStoreFile sf2 = new HStoreFile(storeFileInfo2, BloomType.NONE, cacheConf);
     /**
      * Test without MVCC
@@ -256,12 +256,12 @@ public class TestReversibleScanners {
     MemStore memstore = new DefaultMemStore();
     writeMemstoreAndStoreFiles(memstore, new StoreFileWriter[] { writer1, writer2 });
 
-    StoreFileInfo storeFileInfo1 =
-    		StoreFileInfo.createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer1.getPath(), true);
+    StoreFileInfo storeFileInfo1 = StoreFileInfo
+      .createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer1.getPath(), true);
     HStoreFile sf1 = new HStoreFile(storeFileInfo1, BloomType.NONE, cacheConf);
 
-    StoreFileInfo storeFileInfo2 =
-    		StoreFileInfo.createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer2.getPath(), true);
+    StoreFileInfo storeFileInfo2 = StoreFileInfo
+      .createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, writer2.getPath(), true);
     HStoreFile sf2 = new HStoreFile(storeFileInfo2, BloomType.NONE, cacheConf);
 
     ScanInfo scanInfo = new ScanInfo(TEST_UTIL.getConfiguration(), FAMILYNAME, 0, Integer.MAX_VALUE,

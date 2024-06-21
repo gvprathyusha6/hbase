@@ -95,8 +95,8 @@ public class TestFSErrorsExposed {
       .withOutputDir(hfilePath).withFileContext(meta).build();
     TestHStoreFile.writeStoreFile(writer, Bytes.toBytes("cf"), Bytes.toBytes("qual"));
 
-    StoreFileInfo storeFileInfo =
-    		StoreFileInfo.createStoreFileInfoForHFile(util.getConfiguration(), fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(util.getConfiguration(),
+      fs, writer.getPath(), true);
     HStoreFile sf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     sf.initReader();
     StoreFileReader reader = sf.getReader();
@@ -141,8 +141,8 @@ public class TestFSErrorsExposed {
       .withOutputDir(hfilePath).withFileContext(meta).build();
     TestHStoreFile.writeStoreFile(writer, Bytes.toBytes("cf"), Bytes.toBytes("qual"));
 
-    StoreFileInfo storeFileInfo =
-    		StoreFileInfo.createStoreFileInfoForHFile(util.getConfiguration(), fs, writer.getPath(), true);
+    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(util.getConfiguration(),
+      fs, writer.getPath(), true);
     HStoreFile sf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
 
     List<StoreFileScanner> scanners = StoreFileScanner.getScannersForStoreFiles(

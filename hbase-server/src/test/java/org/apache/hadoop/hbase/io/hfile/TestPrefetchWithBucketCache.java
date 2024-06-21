@@ -159,8 +159,9 @@ public class TestPrefetchWithBucketCache {
     HRegionFileSystem regionFS =
       HRegionFileSystem.createRegionOnFileSystem(conf, fs, tableDir, region);
     Path storeFile = writeStoreFile(100, cfDir);
-	StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true, StoreContext.getBuilder().withRegionFileSystem(regionFS)
-			.withFamilyStoreDirectoryPath(cfDir).withCacheConfig(cacheConf).build());
+    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+      StoreContext.getBuilder().withRegionFileSystem(regionFS).withFamilyStoreDirectoryPath(cfDir)
+        .withCacheConfig(cacheConf).build());
     // Prefetches the file blocks
     LOG.debug("First read should prefetch the blocks.");
     readStoreFile(storeFile);
