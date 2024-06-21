@@ -100,6 +100,12 @@ public interface StoreFileTracker {
 
   Reference createReference(Reference reference, Path path) throws IOException;
 
+  /**
+   * Reads the reference file from the given path.
+   * @param path the {@link Path} to the reference file in the file system.
+   * @return a {@link Reference} that points at top/bottom half of a an hfile
+   * @throws IOException if an I/O error occurs while reading the file.
+   */
   Reference readReference(Path path) throws IOException;
 
   /**

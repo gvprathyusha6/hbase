@@ -134,7 +134,7 @@ public class TestHalfStoreFileReader {
       new ReaderContextBuilder().withInputStreamWrapper(in).withFileSize(length)
         .withReaderType(ReaderContext.ReaderType.PREAD).withFileSystem(fs).withFilePath(p);
     ReaderContext context = contextBuilder.build();
-    StoreFileInfo storeFileInfo = new StoreFileInfo(TEST_UTIL.getConfiguration(), fs, p, true);
+    StoreFileInfo storeFileInfo = StoreFileInfo.createStoreFileInfoForHFile(TEST_UTIL.getConfiguration(), fs, p, true);
     storeFileInfo.initHFileInfo(context);
     final HalfStoreFileReader halfreader =
       (HalfStoreFileReader) storeFileInfo.createReader(context, cacheConf);

@@ -715,7 +715,8 @@ public class HRegionFileSystem {
     // A reference to the bottom half of the hsf store file.
     Reference r =
       top ? Reference.createTopReference(splitRow) : Reference.createBottomReference(splitRow);
-    return r.write(fs, p);
+    tracker.createReference(r, p);
+    return p;
   }
 
   // ===========================================================================
