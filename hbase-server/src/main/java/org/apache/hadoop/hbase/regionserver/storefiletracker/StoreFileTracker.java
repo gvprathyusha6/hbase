@@ -104,7 +104,6 @@ public interface StoreFileTracker {
    * Reads the reference file from the given path.
    * @param path the {@link Path} to the reference file in the file system.
    * @return a {@link Reference} that points at top/bottom half of a an hfile
-   * @throws IOException if an I/O error occurs while reading the file.
    */
   Reference readReference(Path path) throws IOException;
 
@@ -116,8 +115,5 @@ public interface StoreFileTracker {
 
   StoreFileInfo getStoreFileInfo(final FileStatus fileStatus, final Path initialPath,
     final boolean primaryReplica) throws IOException;
-
-  StoreFileInfo getStoreFileInfo(final Path initialPath, final boolean primaryReplica)
-    throws IOException;
 
 }

@@ -457,7 +457,7 @@ public class TestPrefetch {
         .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), "cf"))
         .withRegionFileSystem(regionFs).build());
     // Try to open store file from link
-    StoreFileInfo storeFileInfo = sft.getStoreFileInfo(linkFilePath, true);
+    StoreFileInfo storeFileInfo = sft.getStoreFileInfo(null, linkFilePath, true);
     HStoreFile hsf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     assertTrue(storeFileInfo.isLink());
 

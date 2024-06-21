@@ -266,12 +266,6 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
   }
 
   @Override
-  public StoreFileInfo getStoreFileInfo(Path initialPath, boolean primaryReplica)
-    throws IOException {
-    return getStoreFileInfo(null, initialPath, primaryReplica);
-  }
-
-  @Override
   public StoreFileInfo getStoreFileInfo(FileStatus fileStatus, Path initialPath,
     boolean primaryReplica) throws IOException {
     FileSystem fs = this.ctx.getRegionFileSystem().getFileSystem();
