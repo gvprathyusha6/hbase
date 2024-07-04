@@ -113,18 +113,6 @@ public class StoreFileInfo implements Configurable {
   // done.
   private final AtomicInteger refCount = new AtomicInteger(0);
 
-  /**
-   * Create a Store File Info
-   * @param conf           the {@link Configuration} to use
-   * @param fs             The current file system to use.
-   * @param initialPath    The {@link Path} of the file
-   * @param primaryReplica true if this is a store file for primary replica, otherwise false.
-   */
-  public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path initialPath,
-    final boolean primaryReplica, final StoreFileTracker sft) throws IOException {
-    this(conf, fs, null, initialPath, primaryReplica, sft);
-  }
-
   private StoreFileInfo(final Configuration conf, final FileSystem fs, final FileStatus fileStatus,
     final Path initialPath, final boolean primaryReplica, final StoreFileTracker sft)
     throws IOException {

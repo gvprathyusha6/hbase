@@ -18,6 +18,7 @@
 package org.apache.hadoop.hbase.regionserver;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -54,14 +55,13 @@ public class MockHStoreFile extends HStoreFile {
   boolean compactedAway;
 
   MockHStoreFile(HBaseTestingUtil testUtil, Path testPath, long length, long ageInDisk,
-    boolean isRef, long sequenceid) throws IOException {
-    this(testUtil, testPath, length, ageInDisk, isRef, sequenceid, null);
+    boolean isRef, long sequenceid, StoreFileInfo storeFileInfo) throws IOException {
+    super(storeFileInfo, BloomType.NONE, new CacheConfig(testUtil.getConfiguration()));
+    setMockHStoreFileVals(length, isRef, ageInDisk, sequenceid, isMajor, testUtil);
   }
 
-  MockHStoreFile(HBaseTestingUtil testUtil, Path testPath, long length, long ageInDisk,
-    boolean isRef, long sequenceid, StoreFileTracker tracker) throws IOException {
-    super(testUtil.getTestFileSystem(), testPath, testUtil.getConfiguration(),
-      new CacheConfig(testUtil.getConfiguration()), BloomType.NONE, true, tracker);
+  private void setMockHStoreFileVals(long length, boolean isRef, long ageInDisk, long sequenceid,
+    boolean isMajor, HBaseTestingUtil testUtil) throws UnknownHostException {
     this.length = length;
     this.isRef = isRef;
     this.ageInDisk = ageInDisk;
@@ -72,6 +72,13 @@ public class MockHStoreFile extends HStoreFile {
       new String[] { DNS.getHostname(testUtil.getConfiguration(), DNS.ServerType.REGIONSERVER) },
       1);
     modificationTime = EnvironmentEdgeManager.currentTime();
+  }
+
+  MockHStoreFile(HBaseTestingUtil testUtil, Path testPath, long length, long ageInDisk,
+    boolean isRef, long sequenceid, StoreFileTracker tracker) throws IOException {
+    super(testUtil.getTestFileSystem(), testPath, testUtil.getConfiguration(),
+      new CacheConfig(testUtil.getConfiguration()), BloomType.NONE, true, tracker);
+    setMockHStoreFileVals(length, isRef, ageInDisk, sequenceid, isMajor, testUtil);
   }
 
   void setLength(long newLen) {

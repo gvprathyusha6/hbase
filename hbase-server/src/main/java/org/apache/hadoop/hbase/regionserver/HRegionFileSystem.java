@@ -585,7 +585,7 @@ public class HRegionFileSystem {
         tblDesc.getColumnFamily(Bytes.toBytes(familyName)), regionFs));
       fileInfoMap.computeIfAbsent(familyName, l -> new ArrayList<>());
       List<StoreFileInfo> infos = fileInfoMap.get(familyName);
-      infos.add(new StoreFileInfo(conf, fs, file, true, trackerMap.get(familyName)));
+      infos.add(trackerMap.get(familyName).getStoreFileInfo(file, true));
     }
     for (Map.Entry<String, StoreFileTracker> entry : trackerMap.entrySet()) {
       entry.getValue().add(fileInfoMap.get(entry.getKey()));

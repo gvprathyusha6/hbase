@@ -514,8 +514,8 @@ public class RestoreSnapshotHelper {
             // HFile already present
             familyFiles.remove(storeFile.getName());
             // no need to restore already present files, but we need to add those to tracker
-            filesToTrack.add(
-              new StoreFileInfo(conf, fs, new Path(familyDir, storeFile.getName()), true, tracker));
+            filesToTrack
+              .add(tracker.getStoreFileInfo(new Path(familyDir, storeFile.getName()), true));
           } else {
             // HFile missing
             hfilesToAdd.add(storeFile);
@@ -539,8 +539,7 @@ public class RestoreSnapshotHelper {
           String fileName =
             restoreStoreFile(familyDir, regionInfo, storeFile, createBackRefs, tracker);
           // mark the reference file to be added to tracker
-          filesToTrack
-            .add(new StoreFileInfo(conf, fs, new Path(familyDir, fileName), true, tracker));
+          filesToTrack.add(tracker.getStoreFileInfo(new Path(familyDir, fileName), true));
         }
       } else {
         // Family doesn't exists in the snapshot
@@ -572,7 +571,7 @@ public class RestoreSnapshotHelper {
           + " of snapshot " + snapshotName + " to table=" + tableName);
         String fileName =
           restoreStoreFile(familyDir, regionInfo, storeFile, createBackRefs, tracker);
-        files.add(new StoreFileInfo(conf, fs, new Path(familyDir, fileName), true, tracker));
+        files.add(tracker.getStoreFileInfo(new Path(familyDir, fileName), true));
       }
       tracker.set(files);
     }
@@ -687,7 +686,7 @@ public class RestoreSnapshotHelper {
         } else {
           String file =
             restoreStoreFile(familyDir, snapshotRegionInfo, storeFile, createBackRefs, tracker);
-          clonedFiles.add(new StoreFileInfo(conf, fs, new Path(familyDir, file), true, tracker));
+          clonedFiles.add(tracker.getStoreFileInfo(new Path(familyDir, file), true));
         }
       }
       // we don't need to track files under mobdir

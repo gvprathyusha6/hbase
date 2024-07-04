@@ -229,7 +229,8 @@ public class HStoreFile implements StoreFile {
    */
   public HStoreFile(FileSystem fs, Path p, Configuration conf, CacheConfig cacheConf,
     BloomType cfBloomType, boolean primaryReplica, StoreFileTracker sft) throws IOException {
-    this(new StoreFileInfo(conf, fs, p, primaryReplica, sft), cfBloomType, cacheConf);
+    this(sft.getStoreFileInfo(p, primaryReplica), cfBloomType, cacheConf);
+    // this(new StoreFileInfo(conf, fs, p, primaryReplica, sft), cfBloomType, cacheConf);
   }
 
   /**

@@ -355,7 +355,7 @@ public class TestHStoreFile {
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(dstHri.getRegionNameAsString(), TEST_FAMILY))
         .withRegionFileSystem(dstRegionFs).build());
-    StoreFileInfo storeFileInfo = new StoreFileInfo(testConf, this.fs, linkFilePath, true, sft);
+    StoreFileInfo storeFileInfo = sft.getStoreFileInfo(linkFilePath, true);
     HStoreFile hsf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     assertTrue(storeFileInfo.isLink());
     hsf.initReader();

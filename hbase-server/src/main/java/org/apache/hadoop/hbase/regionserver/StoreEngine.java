@@ -214,8 +214,8 @@ public abstract class StoreEngine<SF extends StoreFlusher, CP extends Compaction
   }
 
   public HStoreFile createStoreFileAndReader(Path p) throws IOException {
-    StoreFileInfo info = new StoreFileInfo(conf, ctx.getRegionFileSystem().getFileSystem(), p,
-      ctx.isPrimaryReplicaStore(), StoreFileTrackerFactory.create(conf, true, ctx));
+    StoreFileInfo info = StoreFileTrackerFactory.create(conf, true, ctx).getStoreFileInfo(p,
+      ctx.isPrimaryReplicaStore());
     return createStoreFileAndReader(info);
   }
 

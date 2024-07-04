@@ -103,23 +103,6 @@ public class TestStoreFileInfo {
   }
 
   @Test
-  public void testOpenErrorMessageHFileLink() throws IOException, IllegalStateException {
-    // Test file link exception
-    // Try to open nonsense hfilelink. Make sure exception is from HFileLink.
-    Path p = new Path("/hbase/test/0123/cf/testtb=4567-abcd");
-    try (FileSystem fs = FileSystem.get(TEST_UTIL.getConfiguration())) {
-      StoreFileInfo sfi = new StoreFileInfo(TEST_UTIL.getConfiguration(), fs, p, true, null);
-      try {
-        ReaderContext context = sfi.createReaderContext(false, 1000, ReaderType.PREAD);
-        sfi.createReader(context, null);
-        throw new IllegalStateException();
-      } catch (FileNotFoundException fnfe) {
-        assertTrue(fnfe.getMessage().contains(HFileLink.class.getSimpleName()));
-      }
-    }
-  }
-
-  @Test
   public void testOpenErrorMessageReference() throws IOException {
     // Test file link exception
     // Try to open nonsense hfilelink. Make sure exception is from HFileLink.
@@ -137,8 +120,7 @@ public class TestStoreFileInfo {
       .build();
     StoreFileTrackerForTest storeFileTrackerForTest =
       new StoreFileTrackerForTest(TEST_UTIL.getConfiguration(), true, storeContext);
-    StoreFileInfo sfi =
-      new StoreFileInfo(TEST_UTIL.getConfiguration(), fs, p, true, storeFileTrackerForTest);
+    StoreFileInfo sfi = storeFileTrackerForTest.getStoreFileInfo(p, true);
     try {
       ReaderContext context = sfi.createReaderContext(false, 1000, ReaderType.PREAD);
       sfi.createReader(context, null);

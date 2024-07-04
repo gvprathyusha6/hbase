@@ -116,4 +116,7 @@ public interface StoreFileTracker {
   StoreFileInfo getStoreFileInfo(final FileStatus fileStatus, final Path initialPath,
     final boolean primaryReplica) throws IOException;
 
+  StoreFileInfo getStoreFileInfo(final Path initialPath, final boolean primaryReplica)
+    throws IOException;
+
 }
