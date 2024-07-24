@@ -60,6 +60,7 @@ import org.apache.hadoop.hbase.io.hfile.HFileContext;
 import org.apache.hadoop.hbase.io.hfile.HFileContextBuilder;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.regionserver.HRegion;
+import org.apache.hadoop.hbase.regionserver.HRegionFileSystem;
 import org.apache.hadoop.hbase.regionserver.HStore;
 import org.apache.hadoop.hbase.regionserver.HStoreFile;
 import org.apache.hadoop.hbase.regionserver.InternalScanner;
@@ -331,9 +332,13 @@ public class TestMobStoreCompaction {
     CacheConfig cacheConfig = new CacheConfig(copyOfConf);
     if (fs.exists(mobDirPath)) {
       // TODO: use sft.load() api here
-      StoreFileTracker sft =
-        StoreFileTrackerFactory.create(copyOfConf, true, StoreContext.getBuilder()
-          .withColumnFamilyDescriptor(familyDescriptor).withCacheConfig(cacheConfig).build());
+      HRegionFileSystem regionFs = HRegionFileSystem.create(copyOfConf, fs,
+        MobUtils.getMobTableDir(copyOfConf, tableDescriptor.getTableName()),
+        region.getRegionInfo());
+      StoreFileTracker sft = StoreFileTrackerFactory.create(copyOfConf, true,
+        StoreContext.getBuilder().withColumnFamilyDescriptor(familyDescriptor)
+          .withFamilyStoreDirectoryPath(mobDirPath).withCacheConfig(cacheConfig)
+          .withRegionFileSystem(regionFs).build());
       FileStatus[] files = UTIL.getTestFileSystem().listStatus(mobDirPath);
       for (FileStatus file : files) {
         HStoreFile sf =

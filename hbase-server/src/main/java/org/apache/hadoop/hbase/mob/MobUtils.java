@@ -395,6 +395,10 @@ public final class MobUtils {
     return CommonFSUtils.getTableDir(getMobHome(rootDir), tableName);
   }
 
+  public static Path getMobTableDir(Configuration conf, TableName tableName) {
+    return getMobTableDir(new Path(conf.get(HConstants.HBASE_DIR)), tableName);
+  }
+
   /**
    * Gets the region dir of the mob files. It's
    * {HBASE_DIR}/mobdir/data/{namespace}/{tableName}/{regionEncodedName}.

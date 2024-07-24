@@ -67,7 +67,8 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
   }
 
   @Override
-  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
+  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly, boolean validate)
+    throws IOException {
     StoreFileList list = backedFile.load(readOnly);
     if (list == null) {
       return Collections.emptyList();

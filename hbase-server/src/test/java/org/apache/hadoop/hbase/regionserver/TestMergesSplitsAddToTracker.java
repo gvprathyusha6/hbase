@@ -221,8 +221,10 @@ public class TestMergesSplitsAddToTracker {
     Path storeDir = region.getRegionFileSystem().getStoreDir("info");
     // gets the single file
     HRegionFileSystem regionFs = region.getRegionFileSystem();
-    StoreFileTracker sft = StoreFileTrackerFactory.create(region.getBaseConf(), true, StoreContext
-      .getBuilder().withFamilyStoreDirectoryPath(storeDir).withRegionFileSystem(regionFs).build());
+    StoreFileTracker sft = StoreFileTrackerFactory.create(region.getBaseConf(), true,
+      StoreContext.getBuilder().withFamilyStoreDirectoryPath(storeDir)
+        .withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.of(FAMILY_NAME))
+        .withRegionFileSystem(regionFs).build());
     List<StoreFileInfo> infos = sft.load();
     StoreFileInfo fileInfo = infos.get(0);
     // make a copy of the valid file staight into the store dir, so that it's not tracked.
@@ -237,9 +239,10 @@ public class TestMergesSplitsAddToTracker {
     String untrackedFile) throws IOException {
     // verify there's no link for the untracked, copied file in first region
     HRegionFileSystem regionFs = region.getRegionFileSystem();
-    StoreFileTracker sft = StoreFileTrackerFactory.create(region.getBaseConf(), true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(regionFs.getFileSystem().getConf(), true,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), "info"))
+        .withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.of(FAMILY_NAME))
         .withRegionFileSystem(regionFs).build());
     List<StoreFileInfo> infos = sft.load();
     assertThat(infos, everyItem(hasProperty("activeFileName", not(containsString(untrackedFile)))));

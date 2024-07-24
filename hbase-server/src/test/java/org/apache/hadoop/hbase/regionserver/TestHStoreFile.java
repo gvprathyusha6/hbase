@@ -351,7 +351,7 @@ public class TestHStoreFile {
     // this should be the SFT for the destination link file path, though it is not
     // being used right now, for the next patch file link creation logic also would
     // move to SFT interface.
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, true,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(dstHri.getRegionNameAsString(), TEST_FAMILY))
         .withRegionFileSystem(dstRegionFs).build());
@@ -416,20 +416,20 @@ public class TestHStoreFile {
     RegionInfo splitHriB =
       RegionInfoBuilder.newBuilder(hri.getTable()).setStartKey(SPLITKEY).build();
 
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, true,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(hriClone.getRegionNameAsString(), TEST_FAMILY))
         .withRegionFileSystem(cloneRegionFs).build());
 
     HRegionFileSystem splitRegionAFs = HRegionFileSystem.createRegionOnFileSystem(testConf, fs,
       CommonFSUtils.getTableDir(testDir, splitHriA.getTable()), splitHriA);
-    StoreFileTracker sftA = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sftA = StoreFileTrackerFactory.create(testConf, true,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(splitHriA.getRegionNameAsString(), TEST_FAMILY))
         .withRegionFileSystem(splitRegionAFs).build());
     HRegionFileSystem splitRegionBFs = HRegionFileSystem.createRegionOnFileSystem(testConf, fs,
       CommonFSUtils.getTableDir(testDir, splitHriB.getTable()), splitHriB);
-    StoreFileTracker sftB = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sftB = StoreFileTrackerFactory.create(testConf, true,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(splitHriB.getRegionNameAsString(), TEST_FAMILY))
         .withRegionFileSystem(splitRegionBFs).build());

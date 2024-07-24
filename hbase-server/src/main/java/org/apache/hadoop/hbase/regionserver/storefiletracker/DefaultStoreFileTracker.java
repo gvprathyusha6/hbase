@@ -64,8 +64,9 @@ class DefaultStoreFileTracker extends StoreFileTrackerBase {
   }
 
   @Override
-  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
-    List<StoreFileInfo> files = getStoreFiles(ctx.getFamily().getNameAsString(), true);
+  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly, boolean validate)
+    throws IOException {
+    List<StoreFileInfo> files = getStoreFiles(ctx.getFamily().getNameAsString(), validate);
     return files != null ? files : Collections.emptyList();
   }
 

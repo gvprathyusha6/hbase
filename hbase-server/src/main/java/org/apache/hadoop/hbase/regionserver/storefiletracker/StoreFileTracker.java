@@ -58,6 +58,11 @@ public interface StoreFileTracker {
   List<StoreFileInfo> load() throws IOException;
 
   /**
+   * Load the store files list when opening a region.
+   */
+  List<StoreFileInfo> load(boolean validate) throws IOException;
+
+  /**
    * Add new store files.
    * <p/>
    * Used for flush and bulk load.

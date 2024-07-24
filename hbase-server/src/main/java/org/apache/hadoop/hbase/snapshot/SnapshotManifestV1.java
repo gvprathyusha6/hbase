@@ -185,7 +185,7 @@ public final class SnapshotManifestV1 {
       for (String familyName : familyNames) {
         StoreFileTracker sft = StoreFileTrackerFactory.create(conf, htd,
           htd.getColumnFamily(familyName.getBytes()), regionFs, false);
-        List<StoreFileInfo> storeFiles = sft.load();
+        List<StoreFileInfo> storeFiles = sft.load(false);
         if (storeFiles == null) {
           LOG.debug("No files under family: " + familyName);
           continue;

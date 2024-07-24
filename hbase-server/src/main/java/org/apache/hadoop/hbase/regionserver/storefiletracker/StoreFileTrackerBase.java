@@ -80,7 +80,12 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
 
   @Override
   public final List<StoreFileInfo> load() throws IOException {
-    return doLoadStoreFiles(!isPrimaryReplica);
+    return load(true);
+  }
+
+  @Override
+  public final List<StoreFileInfo> load(boolean validate) throws IOException {
+    return doLoadStoreFiles(!isPrimaryReplica, validate);
   }
 
   @Override
@@ -323,7 +328,8 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
    * are allowed to do the cleanup work. For secondary replicas, we will set {@code readOnly} to
    * {@code true}.
    */
-  protected abstract List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException;
+  protected abstract List<StoreFileInfo> doLoadStoreFiles(boolean readOnly, boolean validate)
+    throws IOException;
 
   protected abstract void doAddNewStoreFiles(Collection<StoreFileInfo> newFiles) throws IOException;
 
