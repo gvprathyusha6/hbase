@@ -123,7 +123,7 @@ public final class MobUtils {
    * @param cell The current cell.
    * @return True if the cell has a mob reference tag, false if it doesn't.
    */
-  public static boolean isMobReferenceCell(Cell cell) {
+  public static boolean isMobReferenceCell(ExtendedCell cell) {
     if (cell.getTagsLength() > 0) {
       Optional<Tag> tag = PrivateCellUtil.getTag(cell, TagType.MOB_REFERENCE_TAG_TYPE);
       if (tag.isPresent()) {
@@ -138,7 +138,7 @@ public final class MobUtils {
    * @param cell The current cell.
    * @return The table name tag.
    */
-  private static Optional<Tag> getTableNameTag(Cell cell) {
+  private static Optional<Tag> getTableNameTag(ExtendedCell cell) {
     Optional<Tag> tag = Optional.empty();
     if (cell.getTagsLength() > 0) {
       tag = PrivateCellUtil.getTag(cell, TagType.MOB_TABLE_NAME_TAG_TYPE);
@@ -151,7 +151,7 @@ public final class MobUtils {
    * @param cell to extract tag from
    * @return table name as a string. empty if the tag is not found.
    */
-  public static Optional<String> getTableNameString(Cell cell) {
+  public static Optional<String> getTableNameString(ExtendedCell cell) {
     Optional<Tag> tag = getTableNameTag(cell);
     Optional<String> name = Optional.empty();
     if (tag.isPresent()) {
@@ -165,7 +165,7 @@ public final class MobUtils {
    * @param cell to extract tag from
    * @return name of table as a TableName. empty if the tag is not found.
    */
-  public static Optional<TableName> getTableName(Cell cell) {
+  public static Optional<TableName> getTableName(ExtendedCell cell) {
     Optional<Tag> maybe = getTableNameTag(cell);
     Optional<TableName> name = Optional.empty();
     if (maybe.isPresent()) {

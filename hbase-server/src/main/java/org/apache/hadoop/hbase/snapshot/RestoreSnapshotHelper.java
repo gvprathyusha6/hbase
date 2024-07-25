@@ -64,6 +64,7 @@ import org.apache.hadoop.hbase.security.access.TablePermission;
 import org.apache.hadoop.hbase.snapshot.RestoreSnapshotHelper.RestoreMetaChanges;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.CommonFSUtils;
+import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.hbase.util.FSUtils;
 import org.apache.hadoop.hbase.util.ModifyRegionUtils;
 import org.apache.hadoop.hbase.util.Pair;
@@ -883,6 +884,12 @@ public class RestoreSnapshotHelper {
 
     Path snapshotDir = SnapshotDescriptionUtils.getCompletedSnapshotDir(snapshotName, rootDir);
     SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
+    // check if the snapshot is expired.
+    boolean isExpired = SnapshotDescriptionUtils.isExpiredSnapshot(snapshotDesc.getTtl(),
+      snapshotDesc.getCreationTime(), EnvironmentEdgeManager.currentTime());
+    if (isExpired) {
+      throw new SnapshotTTLExpiredException(ProtobufUtil.createSnapshotDesc(snapshotDesc));
+    }
     SnapshotManifest manifest = SnapshotManifest.open(conf, fs, snapshotDir, snapshotDesc);
 
     MonitoredTask status = TaskMonitor.get()

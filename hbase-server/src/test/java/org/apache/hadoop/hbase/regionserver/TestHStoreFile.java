@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.ExtendedCell;
 import org.apache.hadoop.hbase.HBaseClassTestRule;
 import org.apache.hadoop.hbase.HBaseTestingUtil;
 import org.apache.hadoop.hbase.HConstants;
@@ -1114,8 +1115,8 @@ public class TestHStoreFile {
     readerTwo.loadFileInfo();
     StoreFileScanner scannerTwo = getStoreFileScanner(readerTwo, true, true);
     scannerTwo.seek(KeyValue.LOWESTKEY);
-    Cell kv1 = null;
-    Cell kv2 = null;
+    ExtendedCell kv1 = null;
+    ExtendedCell kv2 = null;
     while ((kv1 = scannerOne.next()) != null) {
       kv2 = scannerTwo.next();
       assertTrue(kv1.equals(kv2));

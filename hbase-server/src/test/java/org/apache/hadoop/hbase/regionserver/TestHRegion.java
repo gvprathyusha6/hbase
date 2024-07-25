@@ -82,6 +82,7 @@ import org.apache.hadoop.hbase.CompareOperator;
 import org.apache.hadoop.hbase.CompatibilitySingletonFactory;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.DroppedSnapshotException;
+import org.apache.hadoop.hbase.ExtendedCell;
 import org.apache.hadoop.hbase.ExtendedCellBuilderFactory;
 import org.apache.hadoop.hbase.HBaseClassTestRule;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -3782,26 +3783,26 @@ public class TestHRegion {
     scan.addFamily(fam2);
     scan.addFamily(fam4);
     try (InternalScanner is = region.getScanner(scan)) {
-      List<Cell> res = null;
+      List<ExtendedCell> res = null;
 
       // Result 1
-      List<Cell> expected1 = new ArrayList<>();
+      List<ExtendedCell> expected1 = new ArrayList<>();
       expected1.add(new KeyValue(row1, fam2, null, ts, KeyValue.Type.Put, null));
       expected1.add(new KeyValue(row1, fam4, null, ts, KeyValue.Type.Put, null));
 
       res = new ArrayList<>();
-      is.next(res);
+      is.next((List) res);
       for (int i = 0; i < res.size(); i++) {
         assertTrue(PrivateCellUtil.equalsIgnoreMvccVersion(expected1.get(i), res.get(i)));
       }
 
       // Result 2
-      List<Cell> expected2 = new ArrayList<>();
+      List<ExtendedCell> expected2 = new ArrayList<>();
       expected2.add(new KeyValue(row2, fam2, null, ts, KeyValue.Type.Put, null));
       expected2.add(new KeyValue(row2, fam4, null, ts, KeyValue.Type.Put, null));
 
       res = new ArrayList<>();
-      is.next(res);
+      is.next((List) res);
       for (int i = 0; i < res.size(); i++) {
         assertTrue(PrivateCellUtil.equalsIgnoreMvccVersion(expected2.get(i), res.get(i)));
       }
@@ -3896,7 +3897,7 @@ public class TestHRegion {
     region.flush(true);
 
     // Expected
-    List<Cell> expected = new ArrayList<>();
+    List<ExtendedCell> expected = new ArrayList<>();
     expected.add(kv13);
     expected.add(kv12);
     expected.add(kv23);
@@ -3906,9 +3907,9 @@ public class TestHRegion {
     scan.addColumn(fam1, qf1);
     scan.addColumn(fam1, qf2);
     scan.readVersions(MAX_VERSIONS);
-    List<Cell> actual = new ArrayList<>();
+    List<ExtendedCell> actual = new ArrayList<>();
     try (InternalScanner scanner = region.getScanner(scan)) {
-      boolean hasNext = scanner.next(actual);
+      boolean hasNext = scanner.next((List) actual);
       assertEquals(false, hasNext);
 
       // Verify result
@@ -3970,7 +3971,7 @@ public class TestHRegion {
     region.put(put);
 
     // Expected
-    List<Cell> expected = new ArrayList<>();
+    List<ExtendedCell> expected = new ArrayList<>();
     expected.add(kv14);
     expected.add(kv13);
     expected.add(kv12);
@@ -3983,9 +3984,9 @@ public class TestHRegion {
     scan.addColumn(fam1, qf2);
     int versions = 3;
     scan.readVersions(versions);
-    List<Cell> actual = new ArrayList<>();
+    List<ExtendedCell> actual = new ArrayList<>();
     try (InternalScanner scanner = region.getScanner(scan)) {
-      boolean hasNext = scanner.next(actual);
+      boolean hasNext = scanner.next((List) actual);
       assertEquals(false, hasNext);
 
       // Verify result
@@ -4084,7 +4085,7 @@ public class TestHRegion {
     region.flush(true);
 
     // Expected
-    List<Cell> expected = new ArrayList<>();
+    List<ExtendedCell> expected = new ArrayList<>();
     expected.add(kv13);
     expected.add(kv12);
     expected.add(kv23);
@@ -4093,9 +4094,9 @@ public class TestHRegion {
     Scan scan = new Scan().withStartRow(row1);
     scan.addFamily(fam1);
     scan.readVersions(MAX_VERSIONS);
-    List<Cell> actual = new ArrayList<>();
+    List<ExtendedCell> actual = new ArrayList<>();
     try (InternalScanner scanner = region.getScanner(scan)) {
-      boolean hasNext = scanner.next(actual);
+      boolean hasNext = scanner.next((List) actual);
       assertEquals(false, hasNext);
 
       // Verify result
@@ -4209,9 +4210,9 @@ public class TestHRegion {
     Scan scan = new Scan().withStartRow(row1);
     int versions = 3;
     scan.readVersions(versions);
-    List<Cell> actual = new ArrayList<>();
+    List<ExtendedCell> actual = new ArrayList<>();
     try (InternalScanner scanner = region.getScanner(scan)) {
-      boolean hasNext = scanner.next(actual);
+      boolean hasNext = scanner.next((List) actual);
       assertEquals(false, hasNext);
 
       // Verify result
