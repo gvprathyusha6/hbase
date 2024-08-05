@@ -5709,9 +5709,10 @@ public class TestHRegion {
       // move the file of the primary region to the archive, simulating a compaction
       Collection<HStoreFile> storeFiles = primaryRegion.getStore(families[0]).getStorefiles();
       primaryRegion.getRegionFileSystem().removeStoreFiles(Bytes.toString(families[0]), storeFiles);
-      HRegionFileSystem regionFs = region.getRegionFileSystem();
-      StoreFileTracker sft = StoreFileTrackerFactory.create(region.getBaseConf(), true,
+      HRegionFileSystem regionFs = primaryRegion.getRegionFileSystem();
+      StoreFileTracker sft = StoreFileTrackerFactory.create(primaryRegion.getBaseConf(), true,
         StoreContext.getBuilder()
+          .withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.newBuilder(families[0]).build())
           .withFamilyStoreDirectoryPath(
             new Path(regionFs.getRegionDir(), Bytes.toString(families[0])))
           .withRegionFileSystem(regionFs).build());

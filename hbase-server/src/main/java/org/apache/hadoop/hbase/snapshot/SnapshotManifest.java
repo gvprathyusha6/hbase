@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HConstants;
@@ -207,7 +208,7 @@ public final class SnapshotManifest {
       monitor.rethrowException();
 
       Path storePath = MobUtils.getMobFamilyPath(mobRegionPath, hcd.getNameAsString());
-      List<StoreFileInfo> storeFiles = getStoreFiles(htd, hcd, regionInfo);
+      List<StoreFileInfo> storeFiles = getStoreFiles(storePath, htd, hcd, regionInfo);
       if (storeFiles == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("No mob files under family: " + hcd.getNameAsString());
@@ -341,13 +342,20 @@ public final class SnapshotManifest {
     }
   }
 
-  private List<StoreFileInfo> getStoreFiles(TableDescriptor htd, ColumnFamilyDescriptor hcd,
-    RegionInfo regionInfo) throws IOException {
+  private List<StoreFileInfo> getStoreFiles(Path storePath, TableDescriptor htd,
+    ColumnFamilyDescriptor hcd, RegionInfo regionInfo) throws IOException {
+    FileStatus[] stats = CommonFSUtils.listStatus(rootFs, storePath);
+    if (stats == null) return null;
+
     HRegionFileSystem regionFS = HRegionFileSystem.create(conf, rootFs,
       MobUtils.getMobTableDir(new Path(conf.get(HConstants.HBASE_DIR)), htd.getTableName()),
       regionInfo);
     StoreFileTracker sft = StoreFileTrackerFactory.create(conf, htd, hcd, regionFS, false);
-    return sft.load();
+    ArrayList<StoreFileInfo> storeFiles = new ArrayList<>(stats.length);
+    for (int i = 0; i < stats.length; ++i) {
+      storeFiles.add(sft.getStoreFileInfo(stats[i], stats[i].getPath(), false));
+    }
+    return storeFiles;
   }
 
   private void addReferenceFiles(RegionVisitor visitor, Object regionData, Object familyData,
