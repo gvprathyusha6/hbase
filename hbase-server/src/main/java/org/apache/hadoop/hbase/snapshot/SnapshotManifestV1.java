@@ -30,6 +30,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.RegionInfo;
 import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.hbase.regionserver.HRegionFileSystem;
@@ -185,7 +186,7 @@ public final class SnapshotManifestV1 {
       for (String familyName : familyNames) {
         StoreFileTracker sft = StoreFileTrackerFactory.create(conf, htd,
           htd.getColumnFamily(familyName.getBytes()), regionFs, false);
-        List<StoreFileInfo> storeFiles = sft.load(false);
+        List<StoreFileInfo> storeFiles = getStoreFiles(sft, regionFs, familyName, false);
         if (storeFiles == null) {
           LOG.debug("No files under family: " + familyName);
           continue;
@@ -215,5 +216,33 @@ public final class SnapshotManifestV1 {
       }
     }
     return manifest.build();
+  }
+
+  public static List<StoreFileInfo> getStoreFiles(StoreFileTracker sft, HRegionFileSystem regionFS,
+    String familyName, boolean validate) throws IOException {
+    Path familyDir = new Path(regionFS.getRegionDir(), familyName);
+    FileStatus[] files = CommonFSUtils.listStatus(regionFS.getFileSystem(), familyDir);
+    if (files == null) {
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("No StoreFiles for: " + familyDir);
+      }
+      return null;
+    }
+
+    ArrayList<StoreFileInfo> storeFiles = new ArrayList<>(files.length);
+    for (FileStatus status : files) {
+      if (validate && !StoreFileInfo.isValid(status)) {
+        // recovered.hfiles directory is expected inside CF path when hbase.wal.split.to.hfile to
+        // true, refer HBASE-23740
+        if (!HConstants.RECOVERED_HFILES_DIR.equals(status.getPath().getName())) {
+          LOG.warn("Invalid StoreFile: {}", status.getPath());
+        }
+        continue;
+      }
+      StoreFileInfo info = sft.getStoreFileInfo(status.getPath(), false);
+      storeFiles.add(info);
+
+    }
+    return storeFiles;
   }
 }

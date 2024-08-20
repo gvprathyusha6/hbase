@@ -64,9 +64,8 @@ class DefaultStoreFileTracker extends StoreFileTrackerBase {
   }
 
   @Override
-  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly, boolean validate)
-    throws IOException {
-    List<StoreFileInfo> files = getStoreFiles(ctx.getFamily().getNameAsString(), validate);
+  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
+    List<StoreFileInfo> files = getStoreFiles(ctx.getFamily().getNameAsString());
     return files != null ? files : Collections.emptyList();
   }
 
@@ -80,8 +79,7 @@ class DefaultStoreFileTracker extends StoreFileTrackerBase {
    * @param familyName Column Family Name
    * @return a set of {@link StoreFileInfo} for the specified family.
    */
-  public List<StoreFileInfo> getStoreFiles(final String familyName, final boolean validate)
-    throws IOException {
+  public List<StoreFileInfo> getStoreFiles(final String familyName) throws IOException {
     Path familyDir = ctx.getRegionFileSystem().getStoreDir(familyName);
     FileStatus[] files =
       CommonFSUtils.listStatus(ctx.getRegionFileSystem().getFileSystem(), familyDir);
@@ -94,7 +92,7 @@ class DefaultStoreFileTracker extends StoreFileTrackerBase {
 
     ArrayList<StoreFileInfo> storeFiles = new ArrayList<>(files.length);
     for (FileStatus status : files) {
-      if (validate && !StoreFileInfo.isValid(status)) {
+      if (!StoreFileInfo.isValid(status)) {
         // recovered.hfiles directory is expected inside CF path when
         // hbase.wal.split.to.hfile to
         // true, refer HBASE-23740
