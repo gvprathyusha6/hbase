@@ -293,8 +293,7 @@ public final class MobUtils {
     FileStatus[] stats = null;
     TableName tableName = htd.getTableName();
     Path mobTableDir = CommonFSUtils.getTableDir(getMobHome(conf), tableName);
-    Path regionDir = getMobRegionPath(conf, tableName);
-    HRegionFileSystem regionFS = HRegionFileSystem.create(conf, fs, mobTableDir, regionDir);
+    HRegionFileSystem regionFS = HRegionFileSystem.create(conf, fs, mobTableDir, getMobRegionInfo(tableName));
     StoreFileTracker sft = StoreFileTrackerFactory.create(conf, htd, columnDescriptor, regionFS);
     Path path = getMobFamilyPath(conf, tableName, columnDescriptor.getNameAsString());
     try {
@@ -840,4 +839,8 @@ public final class MobUtils {
     }
     return map;
   }
+  
+  public static void main(String[] args) {
+	System.out.println(Integer.valueOf("1000000000"));
+}
 }

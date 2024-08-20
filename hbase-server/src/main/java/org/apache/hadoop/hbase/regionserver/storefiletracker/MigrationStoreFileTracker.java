@@ -61,9 +61,8 @@ class MigrationStoreFileTracker extends StoreFileTrackerBase {
   }
 
   @Override
-  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly, boolean validate)
-    throws IOException {
-    List<StoreFileInfo> files = src.doLoadStoreFiles(readOnly, validate);
+  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
+    List<StoreFileInfo> files = src.doLoadStoreFiles(readOnly);
     if (!readOnly) {
       dst.doSetStoreFiles(files);
     }

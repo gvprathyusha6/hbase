@@ -503,7 +503,7 @@ public class RestoreSnapshotHelper {
       StoreFileTracker tracker = StoreFileTrackerFactory.create(conf, true,
         StoreContext.getBuilder().withColumnFamilyDescriptor(tableDesc.getColumnFamily(family))
           .withFamilyStoreDirectoryPath(familyDir).withRegionFileSystem(regionFS).build());
-      Set<String> familyFiles = getTableRegionFamilyFiles(tracker);
+      Set<String> familyFiles = getTableRegionFamilyFiles(familyDir);
       List<SnapshotRegionManifest.StoreFile> snapshotFamilyFiles =
         snapshotFiles.remove(familyDir.getName());
       List<StoreFileInfo> filesToTrack = new ArrayList<>();
@@ -577,18 +577,15 @@ public class RestoreSnapshotHelper {
     }
   }
 
-  /** Returns The set of files in the specified family directory. */
-  private Set<String> getTableRegionFamilyFiles(final StoreFileTracker storeFileTracker)
-    throws IOException {
-    List<StoreFileInfo> hfiles;
-    hfiles = storeFileTracker.load();
+  private Set<String> getTableRegionFamilyFiles(final Path familyDir) throws IOException {
+    FileStatus[] hfiles = CommonFSUtils.listStatus(fs, familyDir);
     if (hfiles == null) {
       return Collections.emptySet();
     }
 
-    Set<String> familyFiles = new HashSet<>(hfiles.size());
-    for (int i = 0; i < hfiles.size(); ++i) {
-      String hfileName = hfiles.get(i).getPath().getName();
+    Set<String> familyFiles = new HashSet<>(hfiles.length);
+    for (int i = 0; i < hfiles.length; ++i) {
+      String hfileName = hfiles[i].getPath().getName();
       familyFiles.add(hfileName);
     }
 

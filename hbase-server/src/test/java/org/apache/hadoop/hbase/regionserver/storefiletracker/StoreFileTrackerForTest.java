@@ -58,8 +58,7 @@ public class StoreFileTrackerForTest extends DefaultStoreFileTracker {
   }
 
   @Override
-  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly, boolean validate)
-    throws IOException {
+  protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
     return new ArrayList<>(trackedFiles.get(storeId));
   }
 
