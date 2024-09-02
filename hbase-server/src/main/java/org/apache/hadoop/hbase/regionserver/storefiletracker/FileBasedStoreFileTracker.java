@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.io.Reference;
 import org.apache.hadoop.hbase.regionserver.StoreContext;
 import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
 import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
@@ -159,14 +158,5 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
       }
       backedFile.update(builder);
     }
-  }
-
-  @Override
-  public Reference createReference(Reference reference, Path path) throws IOException {
-    Reference createdReference = super.createReference(reference, path);
-    StoreFileInfo storeFileInfo =
-      new StoreFileInfo(conf, ctx.getRegionFileSystem().getFileSystem(), null, reference);
-    add(Collections.singletonList(storeFileInfo));
-    return createdReference;
   }
 }
