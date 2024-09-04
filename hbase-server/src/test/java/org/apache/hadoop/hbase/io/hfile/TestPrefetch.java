@@ -447,17 +447,21 @@ public class TestPrefetch {
       Bytes.toBytes("testPrefetchWhenHFileLink"));
 
     Path storeFilePath = regionFs.commitStoreFile("cf", writer.getPath());
-    Path dstPath = new Path(regionFs.getTableDir(), new Path("test-region", "cf"));
+    final RegionInfo dstHri =
+    	      RegionInfoBuilder.newBuilder(TableName.valueOf("testPrefetchWhenHFileLink")).build();
+    HRegionFileSystem dstRegionFs = HRegionFileSystem.createRegionOnFileSystem(testConf, fs,
+    	      CommonFSUtils.getTableDir(testDir, dstHri.getTable()), dstHri);
+    Path dstPath = new Path(regionFs.getTableDir(), new Path(dstHri.getRegionNameAsString(), "cf"));
     HFileLink.create(testConf, this.fs, dstPath, hri, storeFilePath.getName());
     Path linkFilePath =
       new Path(dstPath, HFileLink.createHFileLinkName(hri, storeFilePath.getName()));
 
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, true,
       StoreContext.getBuilder()
-        .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), "cf"))
-        .withRegionFileSystem(regionFs).build());
+        .withFamilyStoreDirectoryPath(new Path(dstRegionFs.getRegionDir(), "cf"))
+        .withRegionFileSystem(dstRegionFs).build());
     // Try to open store file from link
-    StoreFileInfo storeFileInfo = sft.getStoreFileInfo(null, linkFilePath, true);
+    StoreFileInfo storeFileInfo = sft.getStoreFileInfo(linkFilePath, true);
     HStoreFile hsf = new HStoreFile(storeFileInfo, BloomType.NONE, cacheConf);
     assertTrue(storeFileInfo.isLink());
 
