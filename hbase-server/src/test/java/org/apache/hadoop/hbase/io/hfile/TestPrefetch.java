@@ -448,9 +448,9 @@ public class TestPrefetch {
 
     Path storeFilePath = regionFs.commitStoreFile("cf", writer.getPath());
     final RegionInfo dstHri =
-    	      RegionInfoBuilder.newBuilder(TableName.valueOf("testPrefetchWhenHFileLink")).build();
+      RegionInfoBuilder.newBuilder(TableName.valueOf("testPrefetchWhenHFileLink")).build();
     HRegionFileSystem dstRegionFs = HRegionFileSystem.createRegionOnFileSystem(testConf, fs,
-    	      CommonFSUtils.getTableDir(testDir, dstHri.getTable()), dstHri);
+      CommonFSUtils.getTableDir(testDir, dstHri.getTable()), dstHri);
     Path dstPath = new Path(regionFs.getTableDir(), new Path(dstHri.getRegionNameAsString(), "cf"));
     HFileLink.create(testConf, this.fs, dstPath, hri, storeFilePath.getName());
     Path linkFilePath =

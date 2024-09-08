@@ -6515,10 +6515,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
             try {
               store.bulkLoadHFile(storeFileInfo);
             } catch (FileNotFoundException ex) {
-              LOG.warn(getRegionInfo().getEncodedName() + " : "
-                + ((storeFileInfo != null)
-                  ? storeFileInfo.toString()
-                  : (new Path(Bytes.toString(family), storeFileInfo.toString())).toString())
+              LOG.warn(getRegionInfo().getEncodedName() + " : " + storeFileInfo.toString()
                 + " doesn't exist any more. Skip loading the file");
             }
           }

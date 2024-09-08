@@ -840,8 +840,4 @@ public final class MobUtils {
     }
     return map;
   }
-
-  public static void main(String[] args) {
-    System.out.println(Integer.valueOf("1000000000"));
-  }
 }
