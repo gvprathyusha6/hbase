@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
@@ -36,6 +37,10 @@ import org.apache.hadoop.hbase.HBaseClassTestRule;
 import org.apache.hadoop.hbase.HBaseTestingUtil;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.KeyValueUtil;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.ColumnFamilyDescriptorBuilder;
+import org.apache.hadoop.hbase.client.RegionInfo;
+import org.apache.hadoop.hbase.client.RegionInfoBuilder;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
 import org.apache.hadoop.hbase.io.hfile.HFile;
 import org.apache.hadoop.hbase.io.hfile.HFileContext;
@@ -43,8 +48,12 @@ import org.apache.hadoop.hbase.io.hfile.HFileContextBuilder;
 import org.apache.hadoop.hbase.io.hfile.HFileScanner;
 import org.apache.hadoop.hbase.io.hfile.ReaderContext;
 import org.apache.hadoop.hbase.io.hfile.ReaderContextBuilder;
+import org.apache.hadoop.hbase.regionserver.HRegionFileSystem;
+import org.apache.hadoop.hbase.regionserver.StoreContext;
 import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
 import org.apache.hadoop.hbase.regionserver.StoreFileWriter;
+import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTracker;
+import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTrackerFactory;
 import org.apache.hadoop.hbase.testclassification.IOTests;
 import org.apache.hadoop.hbase.testclassification.SmallTests;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -84,14 +93,18 @@ public class TestHalfStoreFileReader {
    * top of the file while we are at it.
    */
   @Test
-  public void testHalfScanAndReseek() throws IOException {
+  public void testHalfScanAndReseek() throws IOException, InterruptedException {
     Configuration conf = TEST_UTIL.getConfiguration();
     FileSystem fs = FileSystem.get(conf);
     String root_dir = TEST_UTIL.getDataTestDir().toString();
     Path parentPath = new Path(new Path(root_dir, "parent"), "CF");
     fs.mkdirs(parentPath);
-    Path splitAPath = new Path(new Path(root_dir, "splita"), "CF");
-    Path splitBPath = new Path(new Path(root_dir, "splitb"), "CF");
+    String tableName = Paths.get(root_dir).getFileName().toString();
+    RegionInfo splitAHri = RegionInfoBuilder.newBuilder(TableName.valueOf(tableName)).build();
+    Thread.currentThread().sleep(1000);
+    RegionInfo splitBHri = RegionInfoBuilder.newBuilder(TableName.valueOf(tableName)).build();
+    Path splitAPath = new Path(new Path(root_dir, splitAHri.getRegionNameAsString()), "CF");
+    Path splitBPath = new Path(new Path(root_dir, splitBHri.getRegionNameAsString()), "CF");
     Path filePath = StoreFileWriter.getUniqueFile(fs, parentPath);
 
     CacheConfig cacheConf = new CacheConfig(conf);
@@ -113,12 +126,24 @@ public class TestHalfStoreFileReader {
     Path splitFileA = new Path(splitAPath, filePath.getName() + ".parent");
     Path splitFileB = new Path(splitBPath, filePath.getName() + ".parent");
 
+    HRegionFileSystem splitAregionFS =
+      HRegionFileSystem.create(conf, fs, new Path(root_dir), splitAHri);
+    StoreContext splitAStoreContext =
+      StoreContext.getBuilder().withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.of("CF"))
+        .withFamilyStoreDirectoryPath(splitAPath).withRegionFileSystem(splitAregionFS).build();
+    StoreFileTracker splitAsft = StoreFileTrackerFactory.create(conf, false, splitAStoreContext);
     Reference bottom = new Reference(midkey, Reference.Range.bottom);
-    bottom.write(fs, splitFileA);
+    splitAsft.createReference(bottom, splitFileA);
     doTestOfScanAndReseek(splitFileA, fs, bottom, cacheConf);
 
+    HRegionFileSystem splitBregionFS =
+      HRegionFileSystem.create(conf, fs, new Path(root_dir), splitBHri);
+    StoreContext splitBStoreContext =
+      StoreContext.getBuilder().withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.of("CF"))
+        .withFamilyStoreDirectoryPath(splitBPath).withRegionFileSystem(splitBregionFS).build();
+    StoreFileTracker splitBsft = StoreFileTrackerFactory.create(conf, false, splitBStoreContext);
     Reference top = new Reference(midkey, Reference.Range.top);
-    top.write(fs, splitFileB);
+    splitBsft.createReference(top, splitFileB);
     doTestOfScanAndReseek(splitFileB, fs, top, cacheConf);
 
     r.close();
