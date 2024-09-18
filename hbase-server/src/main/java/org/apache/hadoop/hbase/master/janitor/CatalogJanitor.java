@@ -19,7 +19,6 @@ package org.apache.hadoop.hbase.master.janitor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +35,7 @@ import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.MetaTableAccessor;
 import org.apache.hadoop.hbase.ScheduledChore;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.hadoop.hbase.client.ColumnFamilyDescriptorBuilder;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
@@ -426,11 +426,11 @@ public class CatalogJanitor extends ScheduledChore {
     try {
       HRegionFileSystem regionFs = HRegionFileSystem
         .openRegionFromFileSystem(services.getConfiguration(), fs, tabledir, region, true);
-      Collection<String> families = regionFs.getFamilies();
+      ColumnFamilyDescriptor[] families = tableDescriptor.getColumnFamilies();
       boolean references = false;
-      for (String family : families) {
+      for (ColumnFamilyDescriptor cfd : families) {
         StoreFileTracker sft = StoreFileTrackerFactory.create(services.getConfiguration(),
-          tableDescriptor, ColumnFamilyDescriptorBuilder.of(family), regionFs);
+          tableDescriptor, ColumnFamilyDescriptorBuilder.of(cfd.getNameAsString()), regionFs);
         references = references || sft.hasReferences();
         if (references) {
           break;

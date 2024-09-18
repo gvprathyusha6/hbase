@@ -137,10 +137,8 @@ public class MobFile {
    */
   public static MobFile create(FileSystem fs, Path path, Configuration conf, CacheConfig cacheConf,
     StoreFileTracker sft) throws IOException {
-    // XXX: primaryReplica is only used for constructing the key of block cache so
-    // it is not a
-    // critical problem if we pass the wrong value, so here we always pass true.
-    // Need to fix later.
+    // XXX: primaryReplica is only used for constructing the key of block cache so it is not a
+    // critical problem if we pass the wrong value, so here we always pass true. Need to fix later.
     HStoreFile sf = new HStoreFile(fs, path, conf, cacheConf, BloomType.NONE, true, sft);
     return new MobFile(sf);
   }
