@@ -249,8 +249,10 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
       byte[] pbuf = new byte[pblen];
       IOUtils.readFully(in, pbuf, 0, pblen);
       // WATCHOUT! Return in middle of function!!!
-      if (ProtobufUtil.isPBMagicPrefix(pbuf)) return Reference.convert(
-        org.apache.hadoop.hbase.shaded.protobuf.generated.FSProtos.Reference.parseFrom(in));
+      if (ProtobufUtil.isPBMagicPrefix(pbuf)) {
+        return Reference.convert(
+          org.apache.hadoop.hbase.shaded.protobuf.generated.FSProtos.Reference.parseFrom(in));
+      }
       // Else presume Writables. Need to reset the stream since it didn't start w/ pb.
       // We won't bother rewriting thie Reference as a pb since Reference is transitory.
       in.reset();

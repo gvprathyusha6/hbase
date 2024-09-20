@@ -33,6 +33,8 @@ import org.apache.hadoop.hbase.regionserver.StoreContext;
 import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
 import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
 import org.apache.yetus.audience.InterfaceAudience;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.hbase.shaded.protobuf.generated.StoreFileTrackerProtos.StoreFileEntry;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.StoreFileTrackerProtos.StoreFileList;
@@ -53,6 +55,7 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
   private final StoreFileListFile backedFile;
 
   private final Map<String, StoreFileInfo> storefiles = new HashMap<>();
+  private static final Logger LOG = LoggerFactory.getLogger(FileBasedStoreFileTracker.class);
 
   public FileBasedStoreFileTracker(Configuration conf, boolean isPrimaryReplica, StoreContext ctx) {
     super(conf, isPrimaryReplica, ctx);
@@ -115,6 +118,9 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
         builder.addStoreFile(toStoreFileEntry(info));
       }
       backedFile.update(builder);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(newFiles.size() + " store files added to store file list file: " + newFiles);
+      }
       for (StoreFileInfo info : newFiles) {
         storefiles.put(info.getPath().getName(), info);
       }
@@ -138,6 +144,10 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
         builder.addStoreFile(toStoreFileEntry(info));
       }
       backedFile.update(builder);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
+          "replace compacted files: " + compactedFileNames + " with new store files: " + newFiles);
+      }
       for (String name : compactedFileNames) {
         storefiles.remove(name);
       }
@@ -157,6 +167,9 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
         builder.addStoreFile(toStoreFileEntry(info));
       }
       backedFile.update(builder);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Set store files in store file list file: " + files);
+      }
     }
   }
 }

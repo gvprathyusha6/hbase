@@ -436,8 +436,10 @@ public class TestHStoreFile {
         .withRegionFileSystem(splitRegionBFs).build());
     HStoreFile f = new HStoreFile(fs, linkFilePath, testConf, cacheConf, BloomType.NONE, true, sft);
     f.initReader();
-    Path pathA = splitStoreFile(cloneRegionFs, splitHriA, TEST_FAMILY, f, SPLITKEY, true, sft); // top
-    Path pathB = splitStoreFile(cloneRegionFs, splitHriB, TEST_FAMILY, f, SPLITKEY, false, sft);// bottom
+    // top
+    Path pathA = splitStoreFile(cloneRegionFs, splitHriA, TEST_FAMILY, f, SPLITKEY, true, sft);
+    // bottom
+    Path pathB = splitStoreFile(cloneRegionFs, splitHriB, TEST_FAMILY, f, SPLITKEY, false, sft);
     f.closeStoreFile(true);
     // OK test the thing
     CommonFSUtils.logFileSystemState(fs, testDir, LOG);

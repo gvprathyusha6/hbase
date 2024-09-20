@@ -731,7 +731,8 @@ public class SplitTableRegionProcedure
       .entrySet()) {
       byte[] familyName = Bytes.toBytes(e.getKey());
       final ColumnFamilyDescriptor hcd = htd.getColumnFamily(familyName);
-      final Collection<StoreFileInfo> storeFiles = e.getValue().getFirst();
+      Pair<Collection<StoreFileInfo>, StoreFileTracker> storeFilesAndTracker = e.getValue();
+      final Collection<StoreFileInfo> storeFiles = storeFilesAndTracker.getFirst();
       if (storeFiles != null && storeFiles.size() > 0) {
         final Configuration storeConfiguration =
           StoreUtils.createStoreConfiguration(env.getMasterConfiguration(), htd, hcd);
@@ -743,7 +744,7 @@ public class SplitTableRegionProcedure
           // to read the hfiles.
           storeFileInfo.setConf(storeConfiguration);
           StoreFileSplitter sfs =
-            new StoreFileSplitter(regionFs, e.getValue().getSecond(), familyName,
+            new StoreFileSplitter(regionFs, storeFilesAndTracker.getSecond(), familyName,
               new HStoreFile(storeFileInfo, hcd.getBloomFilterType(), CacheConfig.DISABLED));
           futures.add(threadPool.submit(sfs));
         }
