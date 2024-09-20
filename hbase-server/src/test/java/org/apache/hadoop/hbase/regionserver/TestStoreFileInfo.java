@@ -110,7 +110,6 @@ public class TestStoreFileInfo {
     FileSystem fs = FileSystem.get(TEST_UTIL.getConfiguration());
     fs.mkdirs(p.getParent());
     Reference r = Reference.createBottomReference(HConstants.EMPTY_START_ROW);
-    r.write(fs, p);
     RegionInfo regionInfo = RegionInfoBuilder.newBuilder(TableName.valueOf("table1")).build();
     StoreContext storeContext = StoreContext.getBuilder()
       .withRegionFileSystem(HRegionFileSystem.create(TEST_UTIL.getConfiguration(), fs,
@@ -120,6 +119,7 @@ public class TestStoreFileInfo {
       .build();
     StoreFileTrackerForTest storeFileTrackerForTest =
       new StoreFileTrackerForTest(TEST_UTIL.getConfiguration(), true, storeContext);
+    storeFileTrackerForTest.createReference(r, p);
     StoreFileInfo sfi = storeFileTrackerForTest.getStoreFileInfo(p, true);
     try {
       ReaderContext context = sfi.createReaderContext(false, 1000, ReaderType.PREAD);

@@ -1158,11 +1158,6 @@ public class HRegionFileSystem {
   }
 
   public static HRegionFileSystem create(final Configuration conf, final FileSystem fs,
-    final Path tableDir, final Path regionDir) throws IOException {
-    return new HRegionFileSystem(conf, fs, tableDir, loadRegionInfoFileContent(fs, regionDir));
-  }
-
-  public static HRegionFileSystem create(final Configuration conf, final FileSystem fs,
     final Path tableDir, final RegionInfo regionInfo) throws IOException {
     return new HRegionFileSystem(conf, fs, tableDir, regionInfo);
   }
