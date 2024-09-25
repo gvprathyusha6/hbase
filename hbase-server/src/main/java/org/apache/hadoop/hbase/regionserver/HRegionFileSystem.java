@@ -318,7 +318,6 @@ public class HRegionFileSystem {
    * @param familyName Column Family Name
    * @return true if family contains reference files
    */
-  // TODO: move this to SFT
   public boolean hasReferences(final String familyName) throws IOException {
     Path storeDir = getStoreDir(familyName);
     FileStatus[] files = CommonFSUtils.listStatus(fs, storeDir);
@@ -331,20 +330,6 @@ public class HRegionFileSystem {
           LOG.trace("Reference {}", stat.getPath());
           return true;
         }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Check whether region has Reference file
-   * @param htd table desciptor of the region
-   * @return true if region has reference file
-   */
-  public boolean hasReferences(final TableDescriptor htd) throws IOException {
-    for (ColumnFamilyDescriptor family : htd.getColumnFamilies()) {
-      if (hasReferences(family.getNameAsString())) {
-        return true;
       }
     }
     return false;

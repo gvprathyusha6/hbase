@@ -435,8 +435,10 @@ public class TestHStoreFile {
         .withRegionFileSystem(splitRegionBFs).build());
     HStoreFile f = new HStoreFile(fs, linkFilePath, testConf, cacheConf, BloomType.NONE, true, sft);
     f.initReader();
-    Path pathA = splitStoreFile(cloneRegionFs, splitHriA, TEST_FAMILY, f, SPLITKEY, true, sft); // top
-    Path pathB = splitStoreFile(cloneRegionFs, splitHriB, TEST_FAMILY, f, SPLITKEY, false, sft);// bottom
+    // top
+    Path pathA = splitStoreFile(cloneRegionFs, splitHriA, TEST_FAMILY, f, SPLITKEY, true, sft);
+    // bottom
+    Path pathB = splitStoreFile(cloneRegionFs, splitHriB, TEST_FAMILY, f, SPLITKEY, false, sft);
     f.closeStoreFile(true);
     // OK test the thing
     CommonFSUtils.logFileSystemState(fs, testDir, LOG);
@@ -476,8 +478,8 @@ public class TestHStoreFile {
     assertEquals((LAST_CHAR - FIRST_CHAR + 1) * (LAST_CHAR - FIRST_CHAR + 1), count);
   }
 
-  private void checkHalfHFile(final HRegionFileSystem regionFs, final HStoreFile f,
-    StoreFileTracker sft) throws IOException {
+	private void checkHalfHFile(final HRegionFileSystem regionFs, final HStoreFile f, StoreFileTracker sft)
+			throws IOException {
     f.initReader();
     Cell midkey = f.getReader().midKey().get();
     KeyValue midKV = (KeyValue) midkey;
@@ -496,8 +498,7 @@ public class TestHStoreFile {
     HStoreFile topF = new HStoreFile(this.fs, topPath, conf, cacheConf, BloomType.NONE, true, sft);
     topF.initReader();
     StoreFileReader top = topF.getReader();
-    HStoreFile bottomF =
-      new HStoreFile(this.fs, bottomPath, conf, cacheConf, BloomType.NONE, true, sft);
+	HStoreFile bottomF = new HStoreFile(this.fs, bottomPath, conf, cacheConf, BloomType.NONE, true, sft);
     bottomF.initReader();
     StoreFileReader bottom = bottomF.getReader();
     ByteBuffer previous = null;

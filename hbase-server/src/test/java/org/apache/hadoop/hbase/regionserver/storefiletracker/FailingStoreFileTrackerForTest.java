@@ -33,8 +33,9 @@ public class FailingStoreFileTrackerForTest extends DefaultStoreFileTracker {
   @Override
   protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
     if (ctx.getRegionFileSystem() instanceof FailingHRegionFileSystem) {
-      if (((FailingHRegionFileSystem) ctx.getRegionFileSystem()).fail)
+      if (((FailingHRegionFileSystem) ctx.getRegionFileSystem()).fail) {
         throw new IOException("simulating FS failure");
+      }
     }
     return super.doLoadStoreFiles(readOnly);
   }
