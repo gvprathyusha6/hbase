@@ -6507,8 +6507,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           }
 
           StoreContext storeContext = store.getStoreContext();
-          StoreFileTracker sft = StoreFileTrackerFactory.create(conf,
-            ServerRegionReplicaUtil.isDefaultReplica(getRegionInfo()), storeContext);
+          StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, storeContext);
 
           List<StoreFileInfo> storeFiles = sft.load();
           for (StoreFileInfo storeFileInfo : storeFiles) {

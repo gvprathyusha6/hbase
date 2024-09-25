@@ -165,7 +165,7 @@ public class TestHStoreFile {
     writeStoreFile(writer);
 
     Path sfPath = regionFs.commitStoreFile(TEST_FAMILY, writer.getPath());
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), TEST_FAMILY))
         .withRegionFileSystem(regionFs).build());
@@ -235,7 +235,7 @@ public class TestHStoreFile {
     writeStoreFile(writer);
 
     Path hsfPath = regionFs.commitStoreFile(TEST_FAMILY, writer.getPath());
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), TEST_FAMILY))
         .withRegionFileSystem(regionFs).build());
@@ -287,7 +287,7 @@ public class TestHStoreFile {
     writeStoreFile(writer);
     Path hsfPath = regionFs.commitStoreFile(TEST_FAMILY, writer.getPath());
     writer.close();
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), TEST_FAMILY))
         .withRegionFileSystem(regionFs).build());
@@ -352,7 +352,7 @@ public class TestHStoreFile {
     // this should be the SFT for the destination link file path, though it is not
     // being used right now, for the next patch file link creation logic also would
     // move to SFT interface.
-    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, false,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(dstHri.getRegionNameAsString(), TEST_FAMILY))
         .withRegionFileSystem(dstRegionFs).build());

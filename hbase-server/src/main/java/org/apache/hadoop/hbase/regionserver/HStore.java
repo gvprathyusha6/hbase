@@ -1392,7 +1392,7 @@ public class HStore
         compactionOutputs.remove(sf.getPath().getName());
       }
       for (String compactionOutput : compactionOutputs) {
-        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true, storeContext);
+        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, storeContext);
         StoreFileInfo storeFileInfo =
           getRegionFileSystem().getStoreFileInfo(getColumnFamilyName(), compactionOutput, sft);
         HStoreFile storeFile = storeEngine.createStoreFileAndReader(storeFileInfo);
@@ -2037,7 +2037,7 @@ public class HStore
       List<HStoreFile> storeFiles = new ArrayList<>(fileNames.size());
       for (String file : fileNames) {
         // open the file as a store file (hfile link, etc)
-        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true, storeContext);
+        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, storeContext);
         StoreFileInfo storeFileInfo =
           getRegionFileSystem().getStoreFileInfo(getColumnFamilyName(), file, sft);
         HStoreFile storeFile = storeEngine.createStoreFileAndReader(storeFileInfo);

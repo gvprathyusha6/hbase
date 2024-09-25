@@ -282,7 +282,7 @@ public class HMobStore extends HStore {
   private void validateMobFile(Path path) throws IOException {
     HStoreFile storeFile = null;
     try {
-      StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true, getStoreContext());
+      StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, getStoreContext());
       storeFile = new HStoreFile(getFileSystem(), path, conf, getCacheConfig(), BloomType.NONE,
         isPrimaryReplicaStore(), sft);
       storeFile.initReader();

@@ -336,7 +336,7 @@ public class TestMobStoreCompaction {
       HRegionFileSystem regionFs = HRegionFileSystem.create(copyOfConf, fs,
         MobUtils.getMobTableDir(copyOfConf, tableDescriptor.getTableName()),
         region.getRegionInfo());
-      StoreFileTracker sft = StoreFileTrackerFactory.create(copyOfConf, true,
+      StoreFileTracker sft = StoreFileTrackerFactory.create(copyOfConf, false,
         StoreContext.getBuilder().withColumnFamilyDescriptor(familyDescriptor)
           .withFamilyStoreDirectoryPath(mobDirPath).withCacheConfig(cacheConfig)
           .withRegionFileSystem(regionFs).build());

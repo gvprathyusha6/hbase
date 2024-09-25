@@ -221,7 +221,7 @@ public class TestMergesSplitsAddToTracker {
     Path storeDir = region.getRegionFileSystem().getStoreDir("info");
     // gets the single file
     HRegionFileSystem regionFs = region.getRegionFileSystem();
-    StoreFileTracker sft = StoreFileTrackerFactory.create(region.getBaseConf(), true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(region.getBaseConf(), false,
       StoreContext.getBuilder().withFamilyStoreDirectoryPath(storeDir)
         .withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.of(FAMILY_NAME))
         .withRegionFileSystem(regionFs).build());
@@ -239,7 +239,7 @@ public class TestMergesSplitsAddToTracker {
     String untrackedFile) throws IOException {
     // verify there's no link for the untracked, copied file in first region
     HRegionFileSystem regionFs = region.getRegionFileSystem();
-    StoreFileTracker sft = StoreFileTrackerFactory.create(regionFs.getFileSystem().getConf(), true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(regionFs.getFileSystem().getConf(), false,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(regionFs.getRegionDir(), "info"))
         .withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.of(FAMILY_NAME))

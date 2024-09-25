@@ -5710,7 +5710,7 @@ public class TestHRegion {
       Collection<HStoreFile> storeFiles = primaryRegion.getStore(families[0]).getStorefiles();
       primaryRegion.getRegionFileSystem().removeStoreFiles(Bytes.toString(families[0]), storeFiles);
       HRegionFileSystem regionFs = primaryRegion.getRegionFileSystem();
-      StoreFileTracker sft = StoreFileTrackerFactory.create(primaryRegion.getBaseConf(), true,
+      StoreFileTracker sft = StoreFileTrackerFactory.create(primaryRegion.getBaseConf(), false,
         StoreContext.getBuilder()
           .withColumnFamilyDescriptor(ColumnFamilyDescriptorBuilder.newBuilder(families[0]).build())
           .withFamilyStoreDirectoryPath(

@@ -501,7 +501,7 @@ public class RestoreSnapshotHelper {
     for (Path familyDir : FSUtils.getFamilyDirs(fs, regionDir)) {
       byte[] family = Bytes.toBytes(familyDir.getName());
 
-      StoreFileTracker tracker = StoreFileTrackerFactory.create(conf, true,
+      StoreFileTracker tracker = StoreFileTrackerFactory.create(conf, false,
         StoreContext.getBuilder().withColumnFamilyDescriptor(tableDesc.getColumnFamily(family))
           .withFamilyStoreDirectoryPath(familyDir).withRegionFileSystem(regionFS).build());
       Set<String> familyFiles = getTableRegionFamilyFiles(familyDir);
@@ -668,7 +668,7 @@ public class RestoreSnapshotHelper {
       Configuration sftConf = StoreUtils.createStoreConfiguration(conf, tableDesc,
         tableDesc.getColumnFamily(familyFiles.getFamilyName().toByteArray()));
       StoreFileTracker tracker =
-        StoreFileTrackerFactory.create(sftConf, true, StoreContext.getBuilder()
+        StoreFileTrackerFactory.create(sftConf, false, StoreContext.getBuilder()
           .withFamilyStoreDirectoryPath(familyDir).withRegionFileSystem(regionFS).build());
       for (SnapshotRegionManifest.StoreFile storeFile : familyFiles.getStoreFilesList()) {
         LOG.info("Adding HFileLink " + storeFile.getName() + " from cloned region " + "in snapshot "
