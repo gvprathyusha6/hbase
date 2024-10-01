@@ -787,7 +787,7 @@ public class TestHStore {
 
         LOG.info("Before flush, we should have no files");
 
-        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true, store.getStoreContext());
+        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, store.getStoreContext());
         Collection<StoreFileInfo> files = sft.load();
         assertEquals(0, files != null ? files.size() : 0);
 

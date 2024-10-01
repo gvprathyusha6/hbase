@@ -71,6 +71,9 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
   @Override
   protected List<StoreFileInfo> doLoadStoreFiles(boolean readOnly) throws IOException {
     StoreFileList list = backedFile.load(readOnly);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Loaded file list backed file, containing " + list.getStoreFileList().size() + " store file entries");
+    }
     if (list == null) {
       return Collections.emptyList();
     }
@@ -117,9 +120,9 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
         builder.addStoreFile(toStoreFileEntry(info));
       }
       backedFile.update(builder);
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(newFiles.size() + " store files added to store file list file: " + newFiles);
-		}
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(newFiles.size() + " store files added to store file list file: " + newFiles);
+      }
       for (StoreFileInfo info : newFiles) {
         storefiles.put(info.getPath().getName(), info);
       }
@@ -143,9 +146,9 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
         builder.addStoreFile(toStoreFileEntry(info));
       }
       backedFile.update(builder);
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("replace compacted files: " + compactedFileNames + " with new store files: " + newFiles);
-		}
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("replace compacted files: " + compactedFileNames + " with new store files: " + newFiles);
+      }
       for (String name : compactedFileNames) {
         storefiles.remove(name);
       }
@@ -166,8 +169,8 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
       }
       backedFile.update(builder);
       if (LOG.isTraceEnabled()) {
-          LOG.trace("Set store files in store file list file: " + files);
-        }
+        LOG.trace("Set store files in store file list file: " + files);
+      }
     }
   }
 }

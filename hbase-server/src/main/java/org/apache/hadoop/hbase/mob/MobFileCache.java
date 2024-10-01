@@ -203,7 +203,7 @@ public class MobFileCache {
    */
   public MobFile openFile(FileSystem fs, Path path, CacheConfig cacheConf,
     StoreContext storeContext) throws IOException {
-    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, true, storeContext);
+    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, storeContext);
     if (!isCacheEnabled) {
       MobFile mobFile = MobFile.create(fs, path, conf, cacheConf, sft);
       mobFile.open();

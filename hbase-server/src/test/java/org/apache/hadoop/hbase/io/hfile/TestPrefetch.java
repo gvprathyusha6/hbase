@@ -456,7 +456,7 @@ public class TestPrefetch {
     Path linkFilePath =
       new Path(dstPath, HFileLink.createHFileLinkName(hri, storeFilePath.getName()));
 
-    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, true,
+    StoreFileTracker sft = StoreFileTrackerFactory.create(testConf, false,
       StoreContext.getBuilder()
         .withFamilyStoreDirectoryPath(new Path(dstRegionFs.getRegionDir(), "cf"))
         .withRegionFileSystem(dstRegionFs).build());

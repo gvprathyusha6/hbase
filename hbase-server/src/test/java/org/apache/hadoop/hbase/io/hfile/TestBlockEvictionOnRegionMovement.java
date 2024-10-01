@@ -96,6 +96,8 @@ public class TestBlockEvictionOnRegionMovement {
       cluster.getRegionServer(1).getRegions(tableRegionMove).size() == 1
         ? cluster.getRegionServer(1)
         : cluster.getRegionServer(0);
+    LOG.info("cluster.getRegionServer(1).getRegions(tableRegionMove).size(): " + cluster.getRegionServer(1).getRegions(tableRegionMove).size() );
+    LOG.info("cluster.getRegionServer(0).getRegions(tableRegionMove).size(): " + cluster.getRegionServer(0).getRegions(tableRegionMove).size() );
     assertTrue(regionServingRS.getBlockCache().isPresent());
     long oldUsedCacheSize =
       regionServingRS.getBlockCache().get().getBlockCaches()[1].getCurrentSize();
