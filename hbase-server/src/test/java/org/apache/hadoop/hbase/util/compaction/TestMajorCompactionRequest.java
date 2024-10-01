@@ -146,7 +146,6 @@ public class TestMajorCompactionRequest {
     HRegionFileSystem mockSystem = mock(HRegionFileSystem.class);
     doReturn(info).when(mockSystem).getRegionInfo();
     doReturn(regionStoreDir).when(mockSystem).getStoreDir(FAMILY);
-    doReturn(hasReferenceFiles).when(mockSystem).hasReferences(anyString());
     doReturn(fileSystem).when(mockSystem).getFileSystem();
     return mockSystem;
   }
