@@ -100,7 +100,7 @@ public class TestHalfStoreFileReader {
    * top of the file while we are at it.
    */
   @Test
-  public void testHalfScanAndReseek() throws IOException, InterruptedException {
+  public void testHalfScanAndReseek() throws Exception {
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
     Configuration conf = TEST_UTIL.getConfiguration();
     FileSystem fs = FileSystem.get(conf);
