@@ -104,6 +104,7 @@ import org.apache.hadoop.hbase.TagUtil;
 import org.apache.hadoop.hbase.client.Append;
 import org.apache.hadoop.hbase.client.CheckAndMutate;
 import org.apache.hadoop.hbase.client.CheckAndMutateResult;
+import org.apache.hadoop.hbase.client.ClientInternalHelper;
 import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.hadoop.hbase.client.CompactionState;
 import org.apache.hadoop.hbase.client.Delete;
@@ -112,7 +113,6 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.IsolationLevel;
 import org.apache.hadoop.hbase.client.Mutation;
-import org.apache.hadoop.hbase.client.PackagePrivateFieldAccessor;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.RegionInfo;
 import org.apache.hadoop.hbase.client.RegionReplicaUtil;
@@ -183,6 +183,7 @@ import org.apache.hadoop.hbase.util.TableDescriptorChecker;
 import org.apache.hadoop.hbase.util.Threads;
 import org.apache.hadoop.hbase.wal.WAL;
 import org.apache.hadoop.hbase.wal.WALEdit;
+import org.apache.hadoop.hbase.wal.WALEditInternalHelper;
 import org.apache.hadoop.hbase.wal.WALFactory;
 import org.apache.hadoop.hbase.wal.WALKey;
 import org.apache.hadoop.hbase.wal.WALKeyImpl;
@@ -1646,9 +1647,9 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     boolean isGracefulStop) throws IOException {
     // Only allow one thread to close at a time. Serialize them so dual
     // threads attempting to close will run up against each other.
-    MonitoredTask status = TaskMonitor.get().createStatus(
-      "Closing region " + this.getRegionInfo().getEncodedName() + (abort ? " due to abort" : ""),
-      ignoreStatus, true);
+    MonitoredTask status =
+      TaskMonitor.get().createStatus("Closing region " + this.getRegionInfo().getEncodedName()
+        + (abort ? " due to abort" : " as it is being closed"), ignoreStatus, true);
     status.setStatus("Waiting for close lock");
     try {
       synchronized (closeLock) {
@@ -3300,7 +3301,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     try (RegionScanner scanner = getScanner(new Scan(get))) {
       // NOTE: Please don't use HRegion.get() instead,
       // because it will copy cells to heap. See HBASE-26036
-      List<Cell> result = new ArrayList<>();
+      List<ExtendedCell> result = new ArrayList<>();
       scanner.next(result);
 
       if (result.size() < count) {
@@ -3517,7 +3518,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           // store the family map reference to allow for mutations
           // we know that in mutation, only ExtendedCells are allow so here we do a fake cast, to
           // simplify later logic
-          familyCellMaps[index] = PackagePrivateFieldAccessor.getExtendedFamilyCellMap(mutation);
+          familyCellMaps[index] = ClientInternalHelper.getExtendedFamilyCellMap(mutation);
         }
 
         // store durability for the batch (highest durability of all operations in the batch)
@@ -3713,7 +3714,9 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
 
           // Add WAL edits from CPs.
           WALEdit fromCP = walEditsFromCoprocessors[index];
-          List<Cell> cellsFromCP = fromCP == null ? Collections.emptyList() : fromCP.getCells();
+          List<ExtendedCell> cellsFromCP = fromCP == null
+            ? Collections.emptyList()
+            : WALEditInternalHelper.getExtendedCells(fromCP);
           addNonSkipWALMutationsToWALEdit(miniBatchOp, walEdit, cellsFromCP, familyCellMaps[index]);
           return true;
         }
@@ -3723,14 +3726,14 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
 
     protected void addNonSkipWALMutationsToWALEdit(
       final MiniBatchOperationInProgress<Mutation> miniBatchOp, WALEdit walEdit,
-      List<Cell> cellsFromCP, Map<byte[], List<ExtendedCell>> familyCellMap) {
+      List<ExtendedCell> cellsFromCP, Map<byte[], List<ExtendedCell>> familyCellMap) {
       doAddCellsToWALEdit(walEdit, cellsFromCP, familyCellMap);
     }
 
-    protected static void doAddCellsToWALEdit(WALEdit walEdit, List<Cell> cellsFromCP,
+    protected static void doAddCellsToWALEdit(WALEdit walEdit, List<ExtendedCell> cellsFromCP,
       Map<byte[], List<ExtendedCell>> familyCellMap) {
-      walEdit.add(cellsFromCP);
-      walEdit.add((Map) familyCellMap);
+      WALEditInternalHelper.addExtendedCell(walEdit, cellsFromCP);
+      WALEditInternalHelper.addMap(walEdit, familyCellMap);
     }
 
     protected abstract void cacheSkipWALMutationForRegionReplication(
@@ -4068,10 +4071,10 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       assert mutation instanceof Increment || mutation instanceof Append;
       Map<byte[], List<ExtendedCell>> ret = new TreeMap<>(Bytes.BYTES_COMPARATOR);
       // Process a Store/family at a time.
-      for (Map.Entry<byte[], List<ExtendedCell>> entry : PackagePrivateFieldAccessor
+      for (Map.Entry<byte[], List<ExtendedCell>> entry : ClientInternalHelper
         .getExtendedFamilyCellMap(mutation).entrySet()) {
         final byte[] columnFamilyName = entry.getKey();
-        List<ExtendedCell> deltas = (List) entry.getValue();
+        List<ExtendedCell> deltas = entry.getValue();
         // Reckon for the Store what to apply to WAL and MemStore.
         List<ExtendedCell> toApply =
           reckonDeltasByStore(region.stores.get(columnFamilyName), mutation, now, deltas, results);
@@ -4132,7 +4135,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
         // NOTE: Please don't use HRegion.get() instead,
         // because it will copy cells to heap. See HBASE-26036
         List<ExtendedCell> currentValues = new ArrayList<>();
-        scanner.next((List) currentValues);
+        scanner.next(currentValues);
         // Iterate the input columns and update existing values if they were found, otherwise
         // add new column initialized to the delta amount
         int currentValuesIndex = 0;
@@ -4264,7 +4267,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           this.createWALEditForReplicateSkipWAL(miniBatchOp, nonceKeyAndWALEdits);
         miniBatchOp.setWalEditForReplicateIfExistsSkipWAL(walEditForReplicateIfExistsSkipWAL);
       }
-      walEditForReplicateIfExistsSkipWAL.add((Map) familyCellMap);
+      WALEditInternalHelper.addMap(walEditForReplicateIfExistsSkipWAL, familyCellMap);
 
     }
 
@@ -4283,8 +4286,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     @Override
     protected void addNonSkipWALMutationsToWALEdit(
       final MiniBatchOperationInProgress<Mutation> miniBatchOp, WALEdit walEdit,
-      List<Cell> cellsFromCP, Map<byte[], List<ExtendedCell>> familyCellMap) {
-
+      List<ExtendedCell> cellsFromCP, Map<byte[], List<ExtendedCell>> familyCellMap) {
       super.addNonSkipWALMutationsToWALEdit(miniBatchOp, walEdit, cellsFromCP, familyCellMap);
       WALEdit walEditForReplicateIfExistsSkipWAL =
         miniBatchOp.getWalEditForReplicateIfExistsSkipWAL();
@@ -4528,7 +4530,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           // Returned mutations from coprocessor correspond to the Mutation at index i. We can
           // directly add the cells from those mutations to the familyMaps of this mutation.
           Map<byte[], List<ExtendedCell>> cpFamilyMap =
-            PackagePrivateFieldAccessor.getExtendedFamilyCellMap(cpMutation);
+            ClientInternalHelper.getExtendedFamilyCellMap(cpMutation);
           region.rewriteCellTags(cpFamilyMap, mutation);
           // will get added to the memStore later
           mergeFamilyMaps(familyCellMaps[i], cpFamilyMap);
@@ -5065,7 +5067,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
         try (RegionScanner scanner = getScanner(new Scan(get))) {
           // NOTE: Please don't use HRegion.get() instead,
           // because it will copy cells to heap. See HBASE-26036
-          List<Cell> result = new ArrayList<>(1);
+          List<ExtendedCell> result = new ArrayList<>(1);
           scanner.next(result);
           if (filter != null) {
             if (!result.isEmpty()) {
@@ -5081,7 +5083,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
               matches = (result.get(0).getValueLength() == 0) == (op != CompareOperator.NOT_EQUAL);
               cellTs = result.get(0).getTimestamp();
             } else if (result.size() == 1) {
-              Cell kv = result.get(0);
+              ExtendedCell kv = result.get(0);
               cellTs = kv.getTimestamp();
               int compareResult = PrivateCellUtil.compareValue(kv, comparator);
               matches = matches(op, compareResult);
@@ -5100,16 +5102,16 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           byte[] byteTs = Bytes.toBytes(ts);
           if (mutation != null) {
             if (mutation instanceof Put) {
-              updateCellTimestamps(
-                PackagePrivateFieldAccessor.getExtendedFamilyCellMap(mutation).values(), byteTs);
+              updateCellTimestamps(ClientInternalHelper.getExtendedFamilyCellMap(mutation).values(),
+                byteTs);
             }
             // And else 'delete' is not needed since it already does a second get, and sets the
             // timestamp from get (see prepareDeleteTimestamps).
           } else {
             for (Mutation m : rowMutations.getMutations()) {
               if (m instanceof Put) {
-                updateCellTimestamps(
-                  PackagePrivateFieldAccessor.getExtendedFamilyCellMap(m).values(), byteTs);
+                updateCellTimestamps(ClientInternalHelper.getExtendedFamilyCellMap(m).values(),
+                  byteTs);
               }
             }
             // And else 'delete' is not needed since it already does a second get, and sets the

@@ -363,7 +363,7 @@ public class HStore
     MemoryCompactionPolicy inMemoryCompaction = null;
     if (this.getTableName().isSystemTable()) {
       inMemoryCompaction = MemoryCompactionPolicy
-        .valueOf(conf.get("hbase.systemtables.compacting.memstore.type", "NONE"));
+        .valueOf(conf.get("hbase.systemtables.compacting.memstore.type", "NONE").toUpperCase());
     } else {
       inMemoryCompaction = getColumnFamilyDescriptor().getInMemoryCompaction();
     }

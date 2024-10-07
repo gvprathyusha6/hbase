@@ -65,6 +65,8 @@
         <dependencySets>
           <dependencySet>
             <excludes>
+              <!-- Exclude pom file -->
+              <exclude>com.sun.xml.ws:jaxws-ri:pom</exclude>
               <!-- Exclude libraries that we put in their own dirs under lib/ -->
               <exclude>org.jruby:jruby-complete</exclude>
               <exclude>com.sun.jersey:*</exclude>
@@ -85,6 +87,11 @@
               <exclude>junit:junit</exclude>
               <exclude>org.hamcrest:hamcrest-core</exclude>
               <exclude>org.mockito:mockito-core</exclude>
+              <!-- Exclude transitive dependencies of tomcat-jasper, not needed at runtime -->
+              <exclude>org.apache.tomcat:tomcat-juli</exclude>
+              <exclude>org.apache.tomcat:tomcat-api</exclude>
+              <exclude>org.apache.tomcat:tomcat-util-scan</exclude>
+              <exclude>org.apache.tomcat:tomcat-util</exclude>
             </excludes>
           </dependencySet>
         </dependencySets>
