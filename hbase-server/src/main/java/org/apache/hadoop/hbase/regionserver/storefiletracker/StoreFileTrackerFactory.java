@@ -54,6 +54,7 @@ public final class StoreFileTrackerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(StoreFileTrackerFactory.class);
 
   public static final String TRACKER_IMPL = "hbase.store.file-tracker.impl";
+  private static final 
 
   /**
    * Maps between configuration names for trackers and implementation classes.
