@@ -682,7 +682,8 @@ public class RegionSplitter {
             // Check every Column Family for that region -- check does not have references.
             boolean refFound = false;
             for (ColumnFamilyDescriptor c : htd.getColumnFamilies()) {
-              StoreFileTracker sft = StoreFileTrackerFactory.create(regionFs.getFileSystem().getConf(), htd, c, regionFs);
+              StoreFileTracker sft = StoreFileTrackerFactory
+                .create(regionFs.getFileSystem().getConf(), htd, c, regionFs);
               if ((refFound = sft.hasReferences())) {
                 break;
               }
