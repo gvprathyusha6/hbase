@@ -611,6 +611,7 @@ public class HRegionFileSystem {
    * @param splitPolicy A split policy instance; be careful! May not be full populated; e.g. if this
    *                    method is invoked on the Master side, then the RegionSplitPolicy will NOT
    *                    have a reference to a Region.
+   * @param tracker     {@link StoreFileTracker} of the destination column family                  
    * @return Path to created reference.
    */
   public Path splitStoreFile(RegionInfo hri, String familyName, HStoreFile f, byte[] splitRow,
