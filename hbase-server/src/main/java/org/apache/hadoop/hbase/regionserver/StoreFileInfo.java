@@ -170,6 +170,17 @@ public class StoreFileInfo implements Configurable {
     final HFileLink link) {
     this(conf, fs, fileStatus, null, link);
   }
+  
+  /**
+   * Create a Store File Info from an HFileLink
+   * @param conf       The {@link Configuration} to use
+   * @param fs         The current file system to use
+   * @param fileStatus The {@link FileStatus} of the file
+   */
+  public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path initiaPath,
+    final HFileLink link) {
+    this(conf, fs, initiaPath, null, link);
+  }
 
   /**
    * Create a Store File Info from an HFileLink
@@ -181,6 +192,18 @@ public class StoreFileInfo implements Configurable {
   public StoreFileInfo(final Configuration conf, final FileSystem fs, final FileStatus fileStatus,
     final Reference reference) {
     this(conf, fs, fileStatus, reference, null);
+  }
+  
+  /**
+   * Create a Store File Info from an HFileLink
+   * @param conf       The {@link Configuration} to use
+   * @param fs         The current file system to use
+   * @param fileStatus The {@link FileStatus} of the file
+   * @param reference  The reference instance
+   */
+  public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path initialPath,
+    final Reference reference) {
+    this(conf, fs, initialPath, reference, null);
   }
 
   /**
@@ -204,6 +227,25 @@ public class StoreFileInfo implements Configurable {
       this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
   }
 
+  /**
+   * Create a Store File Info from an HFileLink and a Reference
+   * @param conf       The {@link Configuration} to use
+   * @param fs         The current file system to use
+   * @param fileStatus The {@link FileStatus} of the file
+   * @param reference  The reference instance
+   * @param link       The link instance
+   */
+  public StoreFileInfo(final Configuration conf, final FileSystem fs, final Path path,
+    final Reference reference, final HFileLink link) {
+    this.fs = fs;
+    this.conf = conf;
+    this.primaryReplica = false;
+    this.initialPath = path;
+    this.reference = reference;
+    this.link = link;
+    this.noReadahead =
+      this.conf.getBoolean(STORE_FILE_READER_NO_READAHEAD, DEFAULT_STORE_FILE_READER_NO_READAHEAD);
+  }
   /**
    * Create a Store File Info from an HFileLink and a Reference
    * @param conf       The {@link Configuration} to use

@@ -94,9 +94,9 @@ public class TestStoreFileInfo {
       new Path(mob, "f1"), new Path(archive, "f1"));
 
     StoreFileInfo info1 =
-      new StoreFileInfo(TEST_UTIL.getConfiguration(), TEST_UTIL.getTestFileSystem(), null, link1);
+      new StoreFileInfo(TEST_UTIL.getConfiguration(), TEST_UTIL.getTestFileSystem(), new Path(archive, "f1"), link1);
     StoreFileInfo info2 =
-      new StoreFileInfo(TEST_UTIL.getConfiguration(), TEST_UTIL.getTestFileSystem(), null, link2);
+      new StoreFileInfo(TEST_UTIL.getConfiguration(), TEST_UTIL.getTestFileSystem(), new Path(archive, "f1"), link2);
 
     assertEquals(info1, info2);
     assertEquals(info1.hashCode(), info2.hashCode());
