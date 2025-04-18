@@ -195,7 +195,7 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
   @Override
 	public Reference readReference(Path p) throws IOException {
 		String fileName = p.getName();
-		StoreFileList list = backedFile.load();
+		StoreFileList list = backedFile.load(true);
 	    for (StoreFileEntry entry : list.getStoreFileList()) {
 	    	if(entry.getName().equals(fileName)) {
 	    		return Reference.convert(entry.getReference());
@@ -206,7 +206,7 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
 
   @Override
 	public boolean hasReferences() throws IOException {
-	  StoreFileList list = backedFile.load();
+	  StoreFileList list = backedFile.load(true);
 	    for (StoreFileEntry entry : list.getStoreFileList()) {
 	    	if(entry.hasReference() || HFileLink.isHFileLink(entry.getName())) {
 	    		return true;
