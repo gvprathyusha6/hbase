@@ -918,6 +918,8 @@ public class HStore
         HStoreFile.increaseStoreFilesRefeCount(sfs);
       });
     // notify to be called here - only in case of flushes
+    System.out.println("region name here - " + getStoreContext().getRegionInfo().getEncodedName());
+    System.out.println("Added these store files to engine " + sfs);
     try {
       notifyChangedReadersObservers(sfs);
     } finally {
@@ -1387,10 +1389,15 @@ public class HStore
 
     // some of the input files might already be deleted
     List<HStoreFile> inputStoreFiles = new ArrayList<>(compactionInputs.size());
+    System.out.println("print getstorefiles - " + this.getStorefiles());
     for (HStoreFile sf : this.getStorefiles()) {
       if (inputFiles.contains(sf.getPath().getName())) {
         inputStoreFiles.add(sf);
       }
+      // else if(!isPrimaryReplicaStore() && sf.getFileInfo().isLink() &&
+      // inputFiles.contains(HFileLink.getReferencedHFileName(sf.getPath().getName()))) {
+      // inputStoreFiles.add(sf);
+      // }
     }
 
     // check whether we need to pick up the new files
@@ -1401,7 +1408,8 @@ public class HStore
         compactionOutputs.remove(sf.getPath().getName());
       }
       for (String compactionOutput : compactionOutputs) {
-        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, storeContext);
+        StoreFileTracker sft =
+          StoreFileTrackerFactory.create(conf, isPrimaryReplicaStore(), storeContext);
         StoreFileInfo storeFileInfo =
           getRegionFileSystem().getStoreFileInfo(getColumnFamilyName(), compactionOutput, sft);
         HStoreFile storeFile = storeEngine.createStoreFileAndReader(storeFileInfo);
@@ -1412,6 +1420,8 @@ public class HStore
     if (!inputStoreFiles.isEmpty() || !outputStoreFiles.isEmpty()) {
       LOG.info("Replaying compaction marker, replacing input files: " + inputStoreFiles
         + " with output files : " + outputStoreFiles);
+      LOG.info(
+        "actual input files: " + inputFiles + " with output files of input : " + outputStoreFiles);
       this.replaceStoreFiles(inputStoreFiles, outputStoreFiles, false);
       this.refreshStoreSizeAndTotalBytes();
     }
@@ -2044,9 +2054,13 @@ public class HStore
     public void replayFlush(List<String> fileNames, boolean dropMemstoreSnapshot)
       throws IOException {
       List<HStoreFile> storeFiles = new ArrayList<>(fileNames.size());
+      System.out
+        .println("region name here - " + getStoreContext().getRegionInfo().getEncodedName());
+      System.out.println("Actual filenames I got for replay of flush " + fileNames);
       for (String file : fileNames) {
         // open the file as a store file (hfile link, etc)
-        StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, storeContext);
+        StoreFileTracker sft =
+          StoreFileTrackerFactory.create(conf, isPrimaryReplicaStore(), storeContext);
         StoreFileInfo storeFileInfo =
           getRegionFileSystem().getStoreFileInfo(getColumnFamilyName(), file, sft);
         HStoreFile storeFile = storeEngine.createStoreFileAndReader(storeFileInfo);

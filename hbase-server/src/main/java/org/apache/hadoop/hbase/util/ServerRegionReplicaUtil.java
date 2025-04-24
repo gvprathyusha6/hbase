@@ -133,6 +133,11 @@ public class ServerRegionReplicaUtil extends RegionReplicaUtil {
     }
 
     // else create a store file link. The link file does not exists on filesystem though.
+    // Path tableDir = CommonFSUtils.getTableDir(new Path("./"), regionInfoForFs.getTable());
+    // Path initialPath = new Path(tableDir,
+    // new Path(regionInfoForFs.getEncodedName(),
+    // new Path(familyName, HFileLink.createHFileLinkName(regionInfoForFs.getTable(),
+    // regionInfoForFs.getEncodedName(), path.getName()))));
     if (HFileLink.isHFileLink(path) || StoreFileInfo.isHFile(path)) {
       HFileLink link = HFileLink.build(conf, regionInfoForFs.getTable(),
         regionInfoForFs.getEncodedName(), familyName, path.getName());
@@ -143,6 +148,10 @@ public class ServerRegionReplicaUtil extends RegionReplicaUtil {
       if (HFileLink.isHFileLink(referencePath)) {
         // HFileLink Reference
         HFileLink link = HFileLink.buildFromHFileLinkPattern(conf, referencePath);
+        // initialPath = new Path(tableDir,
+        // new Path(regionInfoForFs.getEncodedName(),
+        // new Path(familyName, HFileLink.createHFileLinkName(regionInfoForFs.getTable(),
+        // regionInfoForFs.getEncodedName(), referencePath.getName()))));
         return new StoreFileInfo(conf, fs, link.getFileStatus(fs), reference, link);
       } else {
         // Reference
