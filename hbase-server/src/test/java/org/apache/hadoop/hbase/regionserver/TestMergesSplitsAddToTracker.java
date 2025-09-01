@@ -164,7 +164,7 @@ public class TestMergesSplitsAddToTracker {
       TEST_UTIL.getHBaseCluster().getMaster().getConfiguration(), regionFS.getFileSystem(),
       regionFS.getTableDir(), mergeResult);
 
-    List<Path> mergedFiles = new ArrayList<>();
+    List<StoreFileInfo> mergedFiles = new ArrayList<>();
     // merge file from first region
     mergedFiles.add(mergeFileFromRegion(first, mergeFS));
     // merge file from second region
@@ -256,7 +256,7 @@ public class TestMergesSplitsAddToTracker {
     }
   }
 
-  private Path mergeFileFromRegion(HRegion regionToMerge, HRegionFileSystem mergeFS)
+  private StoreFileInfo mergeFileFromRegion(HRegion regionToMerge, HRegionFileSystem mergeFS)
     throws IOException {
     HStoreFile file = (HStoreFile) regionToMerge.getStore(FAMILY_NAME).getStorefiles().toArray()[0];
     HRegionFileSystem regionFs = regionToMerge.getRegionFileSystem();

@@ -556,7 +556,7 @@ public class HRegionFileSystem {
     }
   }
 
-  private void insertRegionfilePathsIntoStoreTracker(List<Path> allFiles, MasterProcedureEnv env,
+  private void insertRegionfilePathsIntoStoreTracker(List<StoreFileInfo> allFiles, MasterProcedureEnv env,
     HRegionFileSystem regionFs) throws IOException {
     TableDescriptor tblDesc =
       env.getMasterServices().getTableDescriptors().get(regionInfo.getTable());
@@ -564,13 +564,13 @@ public class HRegionFileSystem {
     Map<String, StoreFileTracker> trackerMap = new HashMap<>();
     // we need to map store files per store
     Map<String, List<StoreFileInfo>> fileInfoMap = new HashMap<>();
-    for (Path file : allFiles) {
-      String familyName = file.getParent().getName();
+    for (StoreFileInfo file : allFiles) {
+      String familyName = file.getPath().getParent().getName();
       trackerMap.computeIfAbsent(familyName, t -> StoreFileTrackerFactory.create(conf, tblDesc,
-        tblDesc.getColumnFamily(Bytes.toBytes(familyName)), regionFs));
+        tblDesc.getColumnFamily(familyName.getBytes()), regionFs));
       fileInfoMap.computeIfAbsent(familyName, l -> new ArrayList<>());
       List<StoreFileInfo> infos = fileInfoMap.get(familyName);
-      infos.add(trackerMap.get(familyName).getStoreFileInfo(file, true));
+      infos.add(file);
     }
     for (Map.Entry<String, StoreFileTracker> entry : trackerMap.entrySet()) {
       entry.getValue().add(fileInfoMap.get(entry.getKey()));
@@ -742,7 +742,7 @@ public class HRegionFileSystem {
    * @return Path to created reference.
    * @throws IOException if the merge write fails.
    */
-  public Path mergeStoreFile(RegionInfo mergingRegion, String familyName, HStoreFile f,
+  public StoreFileInfo mergeStoreFile(RegionInfo mergingRegion, String familyName, HStoreFile f,
     StoreFileTracker tracker) throws IOException {
     Path referenceDir = new Path(getMergesDir(regionInfoForFs), familyName);
     // A whole reference to the store file.
@@ -756,13 +756,14 @@ public class HRegionFileSystem {
     // suffix and into the new region location (under same family).
     Path p = new Path(referenceDir, f.getPath().getName() + "." + mergingRegionName);
     tracker.createReference(r, p);
-    return p;
+    StoreFileInfo storeFileInfo = new StoreFileInfo(conf, fs, p, r);
+    return storeFileInfo;
   }
 
   /**
    * Commit a merged region, making it ready for use.
    */
-  public void commitMergedRegion(List<Path> allMergedFiles, MasterProcedureEnv env)
+  public void commitMergedRegion(List<StoreFileInfo> allMergedFiles, MasterProcedureEnv env)
     throws IOException {
     Path regionDir = getMergesDir(regionInfoForFs);
     if (regionDir != null && fs.exists(regionDir)) {
@@ -770,7 +771,6 @@ public class HRegionFileSystem {
       Path regionInfoFile = new Path(regionDir, REGION_INFO_FILE);
       byte[] regionInfoContent = getRegionInfoFileContent(regionInfo);
       writeRegionInfoFileContent(conf, fs, regionInfoFile, regionInfoContent);
-      List<StoreFileInfo> infos = new ArrayList<StoreFileInfo>();
       insertRegionfilePathsIntoStoreTracker(allMergedFiles, env, this);
     }
   }

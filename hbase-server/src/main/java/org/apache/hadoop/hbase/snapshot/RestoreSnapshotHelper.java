@@ -32,6 +32,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -504,9 +506,12 @@ public class RestoreSnapshotHelper {
 
       StoreFileTracker tracker = StoreFileTrackerFactory.create(conf, true,
         StoreContext.getBuilder().withColumnFamilyDescriptor(tableDesc.getColumnFamily(family))
-          .withFamilyStoreDirectoryPath(new Path(regionPath, new String(family))).withRegionFileSystem(regionFS).build());
+          .withFamilyStoreDirectoryPath(new Path(regionDir, new String(family))).withRegionFileSystem(regionFS).build());
 //      Set<String> familyFiles = getTableRegionFamilyFiles(familyDir);
-      List<StoreFileInfo> familyFiles = tracker.load();
+      List<StoreFileInfo> storeFileInfos = tracker.load();
+      List<String> familyFiles = storeFileInfos.stream()
+    		    .map(storeFileInfo -> storeFileInfo.getPath().getName())
+    		    .collect(Collectors.toList()); 
       List<SnapshotRegionManifest.StoreFile> snapshotFamilyFiles =
         snapshotFiles.remove(familyDir.getName());
       List<StoreFileInfo> filesToTrack = new ArrayList<>();
@@ -526,7 +531,8 @@ public class RestoreSnapshotHelper {
         }
 
         // Remove hfiles not present in the snapshot
-        for (StoreFileInfo hfileName : familyFiles) {
+        for (StoreFileInfo hfileName : storeFileInfos) {
+//        	tracker.
           Path hfile = new Path(familyDir, hfileName.getPath().getName());
           if (!fs.getFileStatus(hfile).isDirectory()) {
             LOG.trace("Removing HFile=" + hfileName + " not present in snapshot=" + snapshotName
@@ -692,16 +698,14 @@ public class RestoreSnapshotHelper {
           if (fs.exists(mobPath)) {
             fs.delete(mobPath, true);
           }
+          StoreFileInfo storeFileInfo =
           restoreStoreFile(familyDir, snapshotRegionInfo, storeFile, createBackRefs, tracker);
+          clonedFiles.add(storeFileInfo);
         } else {
         	StoreFileInfo storeFileInfo =
             restoreStoreFile(familyDir, snapshotRegionInfo, storeFile, createBackRefs, tracker);
           clonedFiles.add(storeFileInfo);
         }
-      }
-      // we don't need to track files under mobdir
-      if (!MobUtils.isMobRegionInfo(newRegionInfo)) {
-        tracker.add(clonedFiles);
       }
       tracker.add(clonedFiles);
     }

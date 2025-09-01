@@ -217,7 +217,7 @@ public class TestDirectStoreSplitsMerges {
       true, first.getStore(FAMILY_NAME).getStoreContext()));
     // merge file from second region
     file = (HStoreFile) second.getStore(FAMILY_NAME).getStorefiles().toArray()[0];
-    List<Path> mergedFiles = new ArrayList<>();
+    List<StoreFileInfo> mergedFiles = new ArrayList<>();
     mergedFiles.add(mergeFileFromRegion(mergeRegionFs, second, file, StoreFileTrackerFactory
       .create(configuration, true, second.getStore(FAMILY_NAME).getStoreContext())));
     MasterProcedureEnv env =
@@ -241,11 +241,11 @@ public class TestDirectStoreSplitsMerges {
     }
   }
 
-  private Path mergeFileFromRegion(HRegionFileSystem regionFS, HRegion regionToMerge,
+  private StoreFileInfo mergeFileFromRegion(HRegionFileSystem regionFS, HRegion regionToMerge,
     HStoreFile file, StoreFileTracker sft) throws IOException {
-    Path mergedFile = regionFS.mergeStoreFile(regionToMerge.getRegionInfo(),
+	  StoreFileInfo mergedFile = regionFS.mergeStoreFile(regionToMerge.getRegionInfo(),
       Bytes.toString(FAMILY_NAME), file, sft);
-    validateResultingFile(regionToMerge.getRegionInfo().getEncodedName(), mergedFile);
+    validateResultingFile(regionToMerge.getRegionInfo().getEncodedName(), mergedFile.getPath());
     return mergedFile;
   }
 
