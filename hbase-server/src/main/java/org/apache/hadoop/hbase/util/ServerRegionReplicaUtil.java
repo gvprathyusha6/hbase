@@ -135,7 +135,7 @@ public class ServerRegionReplicaUtil extends RegionReplicaUtil {
     if (HFileLink.isHFileLink(path) || StoreFileInfo.isHFile(path)) {
       HFileLink link = HFileLink.build(conf, regionInfoForFs.getTable(),
         regionInfoForFs.getEncodedName(), familyName, path.getName());
-      return new StoreFileInfo(conf, fs, initialPath , link);
+      return new StoreFileInfo(conf, fs, link.getFileStatus(fs) , link);
     } else if (StoreFileInfo.isReference(path)) {
       Reference reference = tracker.readReference(path);
       Path referencePath = StoreFileInfo.getReferredToFile(path);
@@ -144,12 +144,12 @@ public class ServerRegionReplicaUtil extends RegionReplicaUtil {
         HFileLink link = HFileLink.buildFromHFileLinkPattern(conf, referencePath);
         initialPath = new Path(tableDir, new Path(regionInfoForFs.getEncodedName(), new Path(familyName, HFileLink
     			.createHFileLinkName(regionInfoForFs.getTable(), regionInfoForFs.getEncodedName(), referencePath.getName()))));
-        return new StoreFileInfo(conf, fs, initialPath, reference, link);
+        return new StoreFileInfo(conf, fs, link.getFileStatus(fs), reference, link);
       } else {
         // Reference
         HFileLink link = HFileLink.build(conf, regionInfoForFs.getTable(),
           regionInfoForFs.getEncodedName(), familyName, path.getName());
-        return new StoreFileInfo(conf, fs, initialPath, link);
+        return new StoreFileInfo(conf, fs, link.getFileStatus(fs), link);
       }
     } else {
       throw new IOException("path=" + path + " doesn't look like a valid StoreFile");

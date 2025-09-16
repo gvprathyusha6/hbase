@@ -72,10 +72,14 @@ public class HFileLink extends FileLink {
     RegionInfoBuilder.ENCODED_REGION_NAME_REGEX, StoreFileInfo.HFILE_NAME_REGEX);
 
   /** Define the HFile Link name parser in the form of: table=region-hfile */
+//  public static final Pattern LINK_NAME_PATTERN =
+//    Pattern.compile(String.format("^(?:(%s)(?:\\=))?(%s)=(%s)-(%s)$",
+//      TableName.VALID_NAMESPACE_REGEX, TableName.VALID_TABLE_QUALIFIER_REGEX,
+//      RegionInfoBuilder.ENCODED_REGION_NAME_REGEX, StoreFileInfo.HFILE_NAME_REGEX));
   public static final Pattern LINK_NAME_PATTERN =
-    Pattern.compile(String.format("^(?:(%s)(?:\\=))?(%s)=(%s)-(%s)$",
-      TableName.VALID_NAMESPACE_REGEX, TableName.VALID_TABLE_QUALIFIER_REGEX,
-      RegionInfoBuilder.ENCODED_REGION_NAME_REGEX, StoreFileInfo.HFILE_NAME_REGEX));
+		  Pattern.compile(String.format("^(?:(%s)(?:\\=))?(%s)=(%s)-(.+)$",
+		    TableName.VALID_NAMESPACE_REGEX, TableName.VALID_TABLE_QUALIFIER_REGEX,
+		    RegionInfoBuilder.ENCODED_REGION_NAME_REGEX)); 
 
   /**
    * The pattern should be used for hfile and reference links that can be found in

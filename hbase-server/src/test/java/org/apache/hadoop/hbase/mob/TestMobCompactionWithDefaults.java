@@ -43,7 +43,9 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.TableDescriptor;
+import org.apache.hadoop.hbase.regionserver.HRegion;
 import org.apache.hadoop.hbase.regionserver.HRegionFileSystem;
+import org.apache.hadoop.hbase.regionserver.HStore;
 import org.apache.hadoop.hbase.regionserver.StoreContext;
 import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTracker;
 import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTrackerFactory;
@@ -152,6 +154,7 @@ public class TestMobCompactionWithDefaults {
 
   private void loadData(TableName tableName, int num) {
     LOG.info("Started loading {} rows into {}", num, tableName);
+    System.out.println("Load started for " + tableName);
     try (final Table table = HTU.getConnection().getTable(tableName)) {
       for (int i = 0; i < num; i++) {
         byte[] key = new byte[32];
@@ -180,9 +183,15 @@ public class TestMobCompactionWithDefaults {
     LOG.info("MOB compaction " + description() + " started");
     System.out.println("Calling loadAndFlush from base ");
     loadAndFlushThreeTimes(rows, table, famStr);
+    long filesAfterFlush = getNumberOfActualMobFiles(tableDescriptor, familyDescriptor, famStr);
+    LOG.info("Files after flush: {}", filesAfterFlush);
     mobCompact(tableDescriptor, familyDescriptor);
-    assertEquals("Should have 4 MOB files per region due to 3xflush + compaction.", numRegions * 4,
-      getNumberOfMobFiles(tableDescriptor, tableDescriptor.getColumnFamily(famStr.getBytes()), famStr));
+    long filesAfterCompaction = getNumberOfActualMobFiles(tableDescriptor, familyDescriptor, famStr);
+    LOG.info("Files after compaction: {}", filesAfterCompaction);
+ 
+    
+    assertEquals("Should have 1 MOB files per region due to 3xflush + compaction.", numRegions * 4,
+      getNumberOfActualMobFiles(tableDescriptor, tableDescriptor.getColumnFamily(famStr.getBytes()), famStr));
     cleanupAndVerifyCounts(table, famStr, 3 * rows);
     LOG.info("MOB compaction " + description() + " finished OK");
   }
@@ -196,25 +205,43 @@ public class TestMobCompactionWithDefaults {
     admin.snapshot(TestMobUtils.getTableName(test), table);
     admin.cloneSnapshot(TestMobUtils.getTableName(test), clone);
     assertEquals("Should have 3 hlinks per region in MOB area from snapshot clone", 3 * numRegions,
-      getNumberOfMobFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
-    mobCompact(admin.getDescriptor(clone), familyDescriptor);
+      getNumberOfStoreFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
+    mobCompact(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()));
     assertEquals("Should have 3 hlinks + 1 MOB file per region due to clone + compact",
-      4 * numRegions, getNumberOfMobFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
+      4 * numRegions, getNumberOfActualMobFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
     cleanupAndVerifyCounts(clone, famStr, 3 * rows);
     LOG.info("MOB compaction of cloned snapshot, " + description() + " finished OK");
   }
 
-  protected long getNumberOfMobFiles(TableDescriptor descriptor, ColumnFamilyDescriptor familyDesc, String family) throws IOException {
-		StoreFileTracker sft = StoreFileTrackerFactory
-				.create(conf, false,
-						StoreContext.getBuilder().withColumnFamilyDescriptor(familyDesc)
-								.withRegionFileSystem(HRegionFileSystem.create(conf, FileSystem.get(conf),
-										MobUtils.getMobTableDir(conf, table), MobUtils.getMobRegionInfo(table)))
-								.withFamilyStoreDirectoryPath(MobUtils.getMobFamilyPath(conf, table, family))
-								.build());
-		System.out.println("After 60 seconds, load() is giving " + sft.load().size());
-		return sft.load().size();
-}
+
+  
+//  protected long getNumberOfActualMobFiles(TableDescriptor descriptor, ColumnFamilyDescriptor familyDesc, String family) throws IOException {
+//	    FileSystem fs = FileSystem.get(conf);
+//	    long totalFiles = 0;
+//	    HRegionFileSystem regionFS = (fs.exists(MobUtils.getMobRegionPath(conf, descriptor.getTableName()))
+//		        ? HRegionFileSystem.openRegionFromFileSystem(conf, fs, MobUtils.getMobTableDir(conf, descriptor.getTableName()), MobUtils.getMobRegionInfo(descriptor.getTableName()), 
+//		        		false)
+//		        : HRegionFileSystem.createRegionOnFileSystem(conf, fs, MobUtils.getMobTableDir(conf, descriptor.getTableName()), MobUtils.getMobRegionInfo(descriptor.getTableName())));
+//		    StoreFileTracker sft = StoreFileTrackerFactory.createMobSFT(conf, false,StoreContext.getBuilder().withColumnFamilyDescriptor(familyDesc)
+//	                .withRegionFileSystem(regionFS)
+//	                    .withFamilyStoreDirectoryPath(MobUtils.getMobFamilyPath(conf, descriptor.getTableName(), family))
+//	                    .build());
+//		    totalFiles += sft.load().size();
+//		  return totalFiles;
+//	  }
+  
+  
+  protected long getNumberOfActualMobFiles(TableDescriptor descriptor, ColumnFamilyDescriptor familyDesc, String family) throws IOException {
+	    FileSystem fs = FileSystem.get(conf);
+	    Path dir = MobUtils.getMobFamilyPath(conf, descriptor.getTableName(), family);
+	    FileStatus[] stat = fs.listStatus(dir);
+	    for (FileStatus st : stat) {
+	      LOG.debug("MOB Directory content: {}", st.getPath());
+	    }
+	    LOG.debug("MOB Directory content total files: {}", stat.length);
+
+	    return stat.length;
+	  }
 
 @Test
   public void testMobFileCompactionAfterSnapshotCloneAndFlush()
@@ -225,32 +252,49 @@ public class TestMobCompactionWithDefaults {
     LOG.debug("Taking snapshot and cloning table {}", table);
     admin.snapshot(TestMobUtils.getTableName(test), table);
     admin.cloneSnapshot(TestMobUtils.getTableName(test), clone);
+    System.out.println("SFT config - " + useFileBasedSFT);
+    long num = getNumberOfStoreFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr);
+    System.out.println("Should have 3 hlinks per region in MOB area from snapshot clone " + 3 * numRegions +" " +
+      num);
+    System.out.println("check mob data immediately after cloning : + with sft " + useFileBasedSFT);
+    CommonFSUtils.logFileSystemState(FileSystem.get(conf), HTU.getDefaultRootDirPath(), LOG);
     assertEquals("Should have 3 hlinks per region in MOB area from snapshot clone", 3 * numRegions,
-      getNumberOfMobFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
+      getNumberOfStoreFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
     loadAndFlushThreeTimes(rows, clone, famStr);
-    mobCompact(admin.getDescriptor(clone), familyDescriptor);
+    mobCompact(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()));
+    	CommonFSUtils.logFileSystemState(FileSystem.get(conf), HTU.getDefaultRootDirPath(), LOG);
     assertEquals("Should have 7 MOB file per region due to clone + 3xflush + compact",
-      7 * numRegions, getNumberOfMobFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
+      7 * numRegions, getNumberOfActualMobFiles(admin.getDescriptor(clone), admin.getDescriptor(clone).getColumnFamily(famStr.getBytes()), famStr));
     cleanupAndVerifyCounts(clone, famStr, 6 * rows);
     LOG.info("MOB compaction of cloned snapshot w flush, " + description() + " finished OK");
   }
 
-  protected void loadAndFlushThreeTimes(int rows, TableName table, String family)
+//  private void getNumberOfStoreFiles(TableDescriptor descriptor, ColumnFamilyDescriptor columnFamily, String famstr2,
+//		boolean b) throws IOException {
+//	  List<HRegion> regions = HTU.getHBaseCluster().getRegions(descriptor.getTableName());
+//	  System.out.println("Number of regions here - " + regions.size());
+//	  for (HRegion region : regions) {
+//	    HStore store = region.getStore(columnFamily.getName());
+//	    // This counts regular region files (with MOB references) via SFT
+//	    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, store.getStoreContext());
+//	    if(sft.load().size() > 1) {
+//	    System.out.println( " loading files of region name - + " + region.getRegionInfo().getEncodedName() + " " + sft.load());
+//	    break;
+//	    }
+//	  }
+//}
+
+protected void loadAndFlushThreeTimes(int rows, TableName table, String family)
     throws IOException {
-    final long start = getNumberOfMobFiles(admin.getDescriptor(table), admin.getDescriptor(table).getColumnFamily(family.getBytes()), family);
+    final long start = getNumberOfActualMobFiles(admin.getDescriptor(table), admin.getDescriptor(table).getColumnFamily(family.getBytes()), family);
     // Load and flush data 3 times
     loadData(table, rows);
     loadData(table, rows);
     loadData(table, rows);
-    try {
-		Thread.currentThread().sleep(60000);
-	} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-    System.out.println("Slept for 60 seconds ");
+    System.out.println("FS state right before assert of flushes");
+    CommonFSUtils.logFileSystemState(FileSystem.get(conf), HTU.getDefaultRootDirPath(), LOG);
     assertEquals("Should have 3 more mob files per region from flushing.", start + numRegions * 3,
-      getNumberOfMobFiles(admin.getDescriptor(table), admin.getDescriptor(table).getColumnFamily(fam), new String(fam)));
+      getNumberOfActualMobFiles(admin.getDescriptor(table), admin.getDescriptor(table).getColumnFamily(family.getBytes()), family));
   }
 
   protected String description() {
@@ -317,7 +361,7 @@ public class TestMobCompactionWithDefaults {
     }
 
     assertEquals("After cleaning, we should have 1 MOB file per region based on size.", numRegions,
-      getNumberOfMobFiles(admin.getDescriptor(table), admin.getDescriptor(table).getColumnFamily(family.getBytes()), family));
+      getNumberOfActualMobFiles(admin.getDescriptor(table), admin.getDescriptor(table).getColumnFamily(family.getBytes()), family));
 
     LOG.debug("checking count of rows");
     long scanned = scanTable(table);
@@ -345,4 +389,17 @@ public class TestMobCompactionWithDefaults {
     }
     return 0;
   }
+  
+  protected long getNumberOfStoreFiles(TableDescriptor descriptor, ColumnFamilyDescriptor familyDesc, String family) throws IOException {
+	  List<HRegion> regions = HTU.getHBaseCluster().getRegions(descriptor.getTableName());
+	  long totalFiles = 0;
+	  System.out.println("Number of regions here - " + regions.size());
+	  for (HRegion region : regions) {
+	    HStore store = region.getStore(familyDesc.getName());
+	    // This counts regular region files (with MOB references) via SFT
+	    StoreFileTracker sft = StoreFileTrackerFactory.create(conf, false, store.getStoreContext());
+	    totalFiles += sft.load().size();
+	  }
+	  return totalFiles;
+}
 }

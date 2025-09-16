@@ -36,6 +36,7 @@ import org.apache.hadoop.hbase.io.HFileLink;
 import org.apache.hadoop.hbase.io.Reference;
 import org.apache.hadoop.hbase.regionserver.StoreContext;
 import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
+import org.apache.hadoop.hbase.util.HFileArchiveUtil;
 import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
@@ -137,6 +138,7 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
         builder.addStoreFile(toStoreFileEntry(info));
       }
       for (StoreFileInfo info : newFiles) {
+    	  if(!storefiles.containsKey(info.getPath().getName()))
         builder.addStoreFile(toStoreFileEntry(info));
       }
       backedFile.update(builder);
@@ -229,12 +231,16 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
     // Path backRefPath = null;
     if (createBackRef) {
       // TODO: this should be done as part of commit
-      // Path backRefssDir = HFileLink.getBackReferencesDir(archiveStoreDir, hfileName);
-      // fs.mkdirs(backRefssDir);
-      //
-      // // Create the reference for the link
-      // backRefPath = new Path(backRefssDir, refName);
-      // fs.createNewFile(backRefPath);
+       Path archiveStoreDir = HFileArchiveUtil.getStoreArchivePath(conf, linkedTable, linkedRegion,
+    		      ctx.getFamily().getNameAsString());
+       Path backRefssDir = HFileLink.getBackReferencesDir(archiveStoreDir, hfileName);
+       fs.mkdirs(backRefssDir);
+      
+       // Create the reference for the link
+       String refName = HFileLink.createBackReferenceName(ctx.getTableName().toString(),
+    		      ctx.getRegionInfo().getEncodedName());
+       Path backRefPath = new Path(backRefssDir, refName);
+       fs.createNewFile(backRefPath);
     }
     try {
     // TODO do not add to SFT as of now
