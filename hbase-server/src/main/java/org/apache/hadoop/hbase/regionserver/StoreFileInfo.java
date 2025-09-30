@@ -39,6 +39,7 @@ import org.apache.hadoop.hbase.io.hfile.InvalidHFileException;
 import org.apache.hadoop.hbase.io.hfile.ReaderContext;
 import org.apache.hadoop.hbase.io.hfile.ReaderContext.ReaderType;
 import org.apache.hadoop.hbase.io.hfile.ReaderContextBuilder;
+import org.apache.hadoop.hbase.mob.MobConstants;
 import org.apache.hadoop.hbase.mob.MobUtils;
 import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTracker;
 import org.apache.hadoop.hbase.util.FSUtils;
@@ -663,6 +664,11 @@ public class StoreFileInfo implements Configurable {
     if (fileStatus.isDirectory()) {
       return false;
     }
+    
+    // Disable validation for MOB files
+    if(p.toString().contains(MobConstants.MOB_DIR_NAME)) {
+    	return true;
+    }
 
     // Check for empty hfile. Should never be the case but can happen
     // after data loss in hdfs for whatever reason (upgrade, etc.): HBASE-646
@@ -674,7 +680,7 @@ public class StoreFileInfo implements Configurable {
 
     return validateStoreFileName(p.getName());
   }
-
+  
   /**
    * helper function to compute HDFS blocks distribution of a given reference file.For reference
    * file, we don't compute the exact value. We use some estimate instead given it might be good
