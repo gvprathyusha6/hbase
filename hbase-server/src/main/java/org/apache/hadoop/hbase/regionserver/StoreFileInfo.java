@@ -647,13 +647,18 @@ public class StoreFileInfo implements Configurable {
    * @return <tt>true</tt> if the file could be a valid store file, <tt>false</tt> otherwise
    */
   public static boolean validateStoreFileName(final String fileName) {
-    if (HFileLink.isHFileLink(fileName) || isReference(fileName)) {
+    if (HFileLink.isHFileLink(fileName) || isReference(fileName) || isMobFileLink(fileName)) {
       return true;
     }
     return !fileName.contains("-");
   }
 
-  /**
+	private static boolean isMobFileLink(String fileName) {
+		Matcher m = HFileLink.REF_OR_HFILE_LINK_PATTERN.matcher(fileName);
+		return m.matches();
+	}
+
+/**
    * Return if the specified file is a valid store file or not.
    * @param fileStatus The {@link FileStatus} of the file
    * @return <tt>true</tt> if the file is valid
@@ -663,11 +668,6 @@ public class StoreFileInfo implements Configurable {
 
     if (fileStatus.isDirectory()) {
       return false;
-    }
-    
-    // Disable validation for MOB files
-    if(p.toString().contains(MobConstants.MOB_DIR_NAME)) {
-    	return true;
     }
 
     // Check for empty hfile. Should never be the case but can happen
