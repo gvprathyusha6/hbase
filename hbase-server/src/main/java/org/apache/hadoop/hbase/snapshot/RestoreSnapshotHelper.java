@@ -785,14 +785,15 @@ public class RestoreSnapshotHelper {
     StoreFileInfo info = null;
     if (HFileLink.isHFileLink(hfileName)) {
       HFileLink hfileLink = tracker.createFromHFileLink(hfileName, createBackRef);
-      info = new StoreFileInfo(conf, fs, hfileLink.getFileStatus(fs), hfileLink);
+      info = new StoreFileInfo(conf, fs, new Path(familyDir, hfileName), hfileLink);
       return info;
     } else if (StoreFileInfo.isReference(hfileName)) {
       return restoreReferenceFile(familyDir, regionInfo, storeFile, tracker);
     } else {
       HFileLink hfileLink = tracker.createHFileLink(regionInfo.getTable(),
         regionInfo.getEncodedName(), hfileName, createBackRef);
-      return new StoreFileInfo(conf, fs, hfileLink.getFileStatus(fs),
+      return new StoreFileInfo(conf, fs, new Path(familyDir, HFileLink
+    		          .createHFileLinkName(regionInfo.getTable(), regionInfo.getEncodedName(), hfileName)),
         hfileLink);
     }
   }
