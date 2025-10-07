@@ -32,6 +32,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -467,8 +469,8 @@ public class RestoreSnapshotHelper {
    */
   private void restoreRegion(final RegionInfo regionInfo,
     final SnapshotRegionManifest regionManifest) throws IOException {
-    restoreRegion(regionInfo, regionManifest, new Path(tableDir, regionInfo.getEncodedName()),
-      tableDir);
+	  restoreRegion(regionInfo, regionManifest, new Path(tableDir, regionInfo.getEncodedName()),
+			        tableDir);
   }
 
   /**
@@ -481,8 +483,8 @@ public class RestoreSnapshotHelper {
       return;
     }
     restoreRegion(regionInfo, regionManifest,
-      MobUtils.getMobRegionPath(conf, tableDesc.getTableName()),
-      MobUtils.getMobTableDir(conf, tableDesc.getTableName()));
+    		MobUtils.getMobRegionPath(conf, tableDesc.getTableName()),
+    		      MobUtils.getMobTableDir(conf, tableDesc.getTableName()));
   }
 
   /**
@@ -490,7 +492,7 @@ public class RestoreSnapshotHelper {
    * snapshot.
    */
   private void restoreRegion(final RegionInfo regionInfo,
-    final SnapshotRegionManifest regionManifest, Path regionDir, Path tableDir) throws IOException {
+		  final SnapshotRegionManifest regionManifest, Path regionDir, Path tableDir) throws IOException {
     Map<String, List<SnapshotRegionManifest.StoreFile>> snapshotFiles =
       getRegionHFileReferences(regionManifest);
 
@@ -505,19 +507,13 @@ public class RestoreSnapshotHelper {
     // Restore families present in the table
     for (Path familyDir : FSUtils.getFamilyDirs(fs, regionDir)) {
       byte[] family = Bytes.toBytes(familyDir.getName());
-      ColumnFamilyDescriptor familyDescriptor = ColumnFamilyDescriptorBuilder.of(family);
-      // if (familyDescriptor == null) {
-      // LOG.warn("Skipping restore for family {} as it doesn't exist in table descriptor",
-      // Bytes.toString(family));
-      // continue;
-      // }
+
       StoreFileTracker tracker = StoreFileTrackerFactory.create(conf, true,
-        StoreContext.getBuilder().withColumnFamilyDescriptor(familyDescriptor)
-          .withFamilyStoreDirectoryPath(new Path(regionDir, new String(family)))
-          .withRegionFileSystem(regionFS).build());
+        StoreContext.getBuilder().withColumnFamilyDescriptor(tableDesc.getColumnFamily(family))
+          .withFamilyStoreDirectoryPath(familyDir).withRegionFileSystem(regionFS).build());
       List<StoreFileInfo> storeFileInfos = tracker.load();
       List<String> familyFiles = storeFileInfos.stream()
-        .map(storeFileInfo -> storeFileInfo.getPath().getName()).collect(Collectors.toList());
+    	        .map(storeFileInfo -> storeFileInfo.getPath().getName()).collect(Collectors.toList());
       List<SnapshotRegionManifest.StoreFile> snapshotFamilyFiles =
         snapshotFiles.remove(familyDir.getName());
       List<StoreFileInfo> filesToTrack = new ArrayList<>();
@@ -799,7 +795,7 @@ public class RestoreSnapshotHelper {
       HFileLink hfileLink = tracker.createHFileLink(regionInfo.getTable(),
         regionInfo.getEncodedName(), hfileName, createBackRef);
       return new StoreFileInfo(conf, fs, new Path(familyDir, HFileLink
-        .createHFileLinkName(regionInfo.getTable(), regionInfo.getEncodedName(), hfileName)),
+    		          .createHFileLinkName(regionInfo.getTable(), regionInfo.getEncodedName(), hfileName)),
         hfileLink);
     }
   }
