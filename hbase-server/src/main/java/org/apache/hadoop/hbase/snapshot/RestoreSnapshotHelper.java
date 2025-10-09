@@ -507,10 +507,15 @@ public class RestoreSnapshotHelper {
     // Restore families present in the table
     for (Path familyDir : FSUtils.getFamilyDirs(fs, regionDir)) {
       byte[] family = Bytes.toBytes(familyDir.getName());
-
+  	if (family == null) {
+		LOG.warn("Skipping restore for family {} as it doesn't exist in table descriptor", Bytes.toString(family));
+		continue;
+	}
+      ColumnFamilyDescriptor familyDescriptor = ColumnFamilyDescriptorBuilder.of(family);
       StoreFileTracker tracker = StoreFileTrackerFactory.create(conf, true,
-        StoreContext.getBuilder().withColumnFamilyDescriptor(tableDesc.getColumnFamily(family))
-          .withFamilyStoreDirectoryPath(familyDir).withRegionFileSystem(regionFS).build());
+    		  StoreContext.getBuilder().withColumnFamilyDescriptor(familyDescriptor)
+    		            .withFamilyStoreDirectoryPath(familyDir)
+    		            .withRegionFileSystem(regionFS).build());
       List<StoreFileInfo> storeFileInfos = tracker.load();
       List<String> familyFiles = storeFileInfos.stream()
     	        .map(storeFileInfo -> storeFileInfo.getPath().getName()).collect(Collectors.toList());
