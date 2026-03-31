@@ -21,11 +21,15 @@ import java.io.IOException;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellComparator;
 import org.apache.hadoop.hbase.CellUtil;
@@ -45,7 +49,6 @@ import org.apache.hadoop.hbase.ipc.CallerDisconnectedException;
 import org.apache.hadoop.hbase.ipc.RpcCall;
 import org.apache.hadoop.hbase.ipc.RpcCallback;
 import org.apache.hadoop.hbase.ipc.RpcServer;
-import org.apache.hadoop.hbase.monitoring.ThreadLocalServerSideScanMetrics;
 import org.apache.hadoop.hbase.regionserver.Region.Operation;
 import org.apache.hadoop.hbase.regionserver.ScannerContext.LimitScope;
 import org.apache.hadoop.hbase.regionserver.ScannerContext.NextState;
@@ -96,7 +99,7 @@ public class RegionScannerImpl implements RegionScanner, Shipper, RpcCallback {
 
   private RegionServerServices rsServices;
 
-  private ServerSideScanMetrics scannerInitMetrics = null;
+  private final Set<Path> filesRead = new HashSet<>();
 
   @Override
   public RegionInfo getRegionInfo() {
@@ -148,16 +151,7 @@ public class RegionScannerImpl implements RegionScanner, Shipper, RpcCallback {
     } finally {
       region.smallestReadPointCalcLock.unlock(ReadPointCalculationLock.LockType.RECORDING_LOCK);
     }
-    boolean isScanMetricsEnabled = scan.isScanMetricsEnabled();
-    ThreadLocalServerSideScanMetrics.setScanMetricsEnabled(isScanMetricsEnabled);
-    if (isScanMetricsEnabled) {
-      this.scannerInitMetrics = new ServerSideScanMetrics();
-      ThreadLocalServerSideScanMetrics.reset();
-    }
     initializeScanners(scan, additionalScanners);
-    if (isScanMetricsEnabled) {
-      ThreadLocalServerSideScanMetrics.populateServerSideScanMetrics(scannerInitMetrics);
-    }
   }
 
   public ScannerContext getContext() {
@@ -291,16 +285,6 @@ public class RegionScannerImpl implements RegionScanner, Shipper, RpcCallback {
       throw new UnknownScannerException("Scanner was closed");
     }
     boolean moreValues = false;
-    boolean isScanMetricsEnabled = scannerContext.isTrackingMetrics();
-    ThreadLocalServerSideScanMetrics.setScanMetricsEnabled(isScanMetricsEnabled);
-    if (isScanMetricsEnabled) {
-      ThreadLocalServerSideScanMetrics.reset();
-      ServerSideScanMetrics scanMetrics = scannerContext.getMetrics();
-      if (scannerInitMetrics != null) {
-        scannerInitMetrics.getMetricsMap().forEach(scanMetrics::addToCounter);
-        scannerInitMetrics = null;
-      }
-    }
     if (outResults.isEmpty()) {
       // Usually outResults is empty. This is true when next is called
       // to handle scan or get operation.
@@ -309,10 +293,6 @@ public class RegionScannerImpl implements RegionScanner, Shipper, RpcCallback {
       List<ExtendedCell> tmpList = new ArrayList<>();
       moreValues = nextInternal(tmpList, scannerContext);
       outResults.addAll(tmpList);
-    }
-    if (isScanMetricsEnabled) {
-      ServerSideScanMetrics scanMetrics = scannerContext.getMetrics();
-      ThreadLocalServerSideScanMetrics.populateServerSideScanMetrics(scanMetrics);
     }
     region.addReadRequestsCount(1);
     if (region.getMetrics() != null) {
@@ -786,10 +766,12 @@ public class RegionScannerImpl implements RegionScanner, Shipper, RpcCallback {
   private void closeInternal() {
     if (storeHeap != null) {
       storeHeap.close();
+      filesRead.addAll(storeHeap.getFilesRead());
       storeHeap = null;
     }
     if (joinedHeap != null) {
       joinedHeap.close();
+      filesRead.addAll(joinedHeap.getFilesRead());
       joinedHeap = null;
     }
     // no need to synchronize here.
@@ -800,6 +782,15 @@ public class RegionScannerImpl implements RegionScanner, Shipper, RpcCallback {
   @Override
   public synchronized void close() {
     TraceUtil.trace(this::closeInternal, () -> region.createRegionSpan("RegionScanner.close"));
+  }
+
+  /**
+   * Returns the set of store file paths that were successfully read by this scanner. Populated at
+   * close from the underlying store heap and joined heap (if any).
+   */
+  @Override
+  public Set<Path> getFilesRead() {
+    return Collections.unmodifiableSet(filesRead);
   }
 
   @Override

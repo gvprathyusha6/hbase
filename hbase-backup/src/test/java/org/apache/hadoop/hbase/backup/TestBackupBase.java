@@ -66,9 +66,9 @@ import org.apache.hadoop.hbase.util.CommonFSUtils;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.hbase.wal.AbstractFSWALProvider;
 import org.apache.hadoop.hbase.wal.WALFactory;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +116,7 @@ public class TestBackupBase {
       super(conn, backupId, request);
     }
 
-    @Before
+    @BeforeEach
     public void ensurePreviousBackupTestsAreCleanedUp() throws Exception {
       // Every operation here may not be necessary for any given test,
       // some often being no-ops. the goal is to help ensure atomicity
@@ -185,14 +185,11 @@ public class TestBackupBase {
         Map<TableName, Map<String, Long>> newTableSetTimestampMap =
           backupManager.readLogTimestampMap();
 
-        Long newStartCode =
-          BackupUtils.getMinValue(BackupUtils.getRSLogTimestampMins(newTableSetTimestampMap));
-        backupManager.writeBackupStartCode(newStartCode);
-
         handleBulkLoad(backupInfo.getTableNames());
         failStageIf(Stage.stage_4);
 
         // backup complete
+        backupInfo.setTableSetTimestampMap(newTableSetTimestampMap);
         completeBackup(conn, backupInfo, BackupType.INCREMENTAL, conf);
 
       } catch (Exception e) {
@@ -219,16 +216,7 @@ public class TestBackupBase {
         // Begin BACKUP
         beginBackup(backupManager, backupInfo);
         failStageIf(Stage.stage_0);
-        String savedStartCode;
-        boolean firstBackup;
         // do snapshot for full table backup
-        savedStartCode = backupManager.readBackupStartCode();
-        firstBackup = savedStartCode == null || Long.parseLong(savedStartCode) == 0L;
-        if (firstBackup) {
-          // This is our first backup. Let's put some marker to system table so that we can hold the
-          // logs while we do the backup.
-          backupManager.writeBackupStartCode(0L);
-        }
         failStageIf(Stage.stage_1);
         // We roll log here before we do the snapshot. It is possible there is duplicate data
         // in the log that is already in the snapshot. But if we do it after the snapshot, we
@@ -269,11 +257,9 @@ public class TestBackupBase {
         Map<TableName, Map<String, Long>> newTableSetTimestampMap =
           backupManager.readLogTimestampMap();
 
-        Long newStartCode =
-          BackupUtils.getMinValue(BackupUtils.getRSLogTimestampMins(newTableSetTimestampMap));
-        backupManager.writeBackupStartCode(newStartCode);
         failStageIf(Stage.stage_4);
         // backup complete
+        backupInfo.setTableSetTimestampMap(newTableSetTimestampMap);
         completeBackup(conn, backupInfo, BackupType.FULL, conf);
 
       } catch (Exception e) {
@@ -343,7 +329,7 @@ public class TestBackupBase {
    * Setup Cluster with appropriate configurations before running tests.
    * @throws Exception if starting the mini cluster or setting up the tables fails
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     TEST_UTIL = new HBaseTestingUtil();
     conf1 = TEST_UTIL.getConfiguration();
@@ -360,7 +346,7 @@ public class TestBackupBase {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() throws Exception {
     try {
       SnapshotTestingUtils.deleteAllSnapshots(TEST_UTIL.getAdmin());

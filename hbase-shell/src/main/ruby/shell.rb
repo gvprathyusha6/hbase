@@ -215,7 +215,7 @@ module Shell
       puts 'HBase Shell'
       puts 'Use "help" to get list of supported commands.'
       puts 'Use "exit" to quit this interactive shell.'
-      puts 'For Reference, please visit: http://hbase.apache.org/book.html#shell'
+      puts 'For Reference, please visit: https://hbase.apache.org/docs/shell'
       print 'Version '
       command('version')
       puts
@@ -298,7 +298,7 @@ double-quote'd hexadecimal representation. For example:
   hbase> put 't1', "test\\xef\\xff", 'f1:', "\\x01\\x33\\x40"
 
 The HBase shell is the (J)Ruby IRB with the above HBase-specific commands added.
-For more on the HBase Shell, see http://hbase.apache.org/book.html
+For more on the HBase Shell, see https://hbase.apache.org/docs
       HERE
     end
 
@@ -451,6 +451,7 @@ Shell.load_command_group(
     normalizer_enabled
     is_in_maintenance_mode
     clear_slowlog_responses
+    reopen_regions
     close_region
     compact
     compaction_switch
@@ -576,6 +577,7 @@ Shell.load_command_group(
     list_snapshot_sizes
     enable_rpc_throttle
     disable_rpc_throttle
+    rpc_throttle_enabled
     enable_exceed_throttle_quota
     disable_exceed_throttle_quota
   ]

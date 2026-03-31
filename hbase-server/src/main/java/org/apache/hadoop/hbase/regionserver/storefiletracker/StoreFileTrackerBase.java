@@ -393,6 +393,11 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
       createBackRef);
   }
 
+  @Override
+  public StoreContext getStoreContext() {
+    return ctx;
+  }
+
   public void removeStoreFiles(List<HStoreFile> storeFiles) throws IOException {
     archiveStoreFiles(storeFiles);
   }
