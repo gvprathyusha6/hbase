@@ -338,7 +338,6 @@ abstract class StoreFileTrackerBase implements StoreFileTracker {
     StoreFileInfo storeFileInfo =
       new StoreFileInfo(conf, this.ctx.getRegionFileSystem().getFileSystem(), path, hFileLink);
     add(Arrays.asList(storeFileInfo));
-    System.out.println("Created hfilelink " + path.toString());
     return hFileLink;
   }
 

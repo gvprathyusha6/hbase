@@ -71,7 +71,6 @@ import org.apache.hadoop.hbase.regionserver.storefiletracker.StoreFileTrackerFac
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.CommonFSUtils;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-import org.apache.hadoop.hbase.util.FSUtils;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.hbase.util.Threads;
 import org.apache.hadoop.hbase.wal.WALSplitUtil;
@@ -844,18 +843,6 @@ public class SplitTableRegionProcedure
         + " storefiles, Daughter B: " + daughterB + " storefiles.");
     }
     return new Pair<>(daughterA, daughterB);
-  }
-
-  // TODO: update assert to do SFT.load instead of FileSystem listing
-  private void assertSplitResultFilesCount(final FileSystem fs,
-    final int expectedSplitResultFileCount, Path dir) throws IOException {
-    if (expectedSplitResultFileCount != 0) {
-      int resultFileCount = FSUtils.getRegionReferenceAndLinkFileCount(fs, dir);
-      if (expectedSplitResultFileCount != resultFileCount) {
-        throw new IOException("Failing split. Didn't have expected reference and HFileLink files"
-          + ", expected=" + expectedSplitResultFileCount + ", actual=" + resultFileCount);
-      }
-    }
   }
 
   private Pair<StoreFileInfo, StoreFileInfo> splitStoreFile(HRegionFileSystem regionFs,

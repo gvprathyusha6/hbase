@@ -118,8 +118,7 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
     org.apache.hadoop.hbase.shaded.protobuf.generated.StoreFileTrackerProtos.StoreFileEntry.Builder entryBuilder =
       StoreFileEntry.newBuilder().setName(info.getPath().getName()).setSize(info.getSize());
     if (info.isReference()) {
-      // TODO: Need a better way to fix the Protobuf generate enum Range to Reference.Range,
-      // otherwise it would result in DATA LOSS
+      // TODO: Need a better way to map the Protobuf generate enum Range to Reference.Range
       org.apache.hadoop.hbase.shaded.protobuf.generated.FSProtos.Reference reference =
         org.apache.hadoop.hbase.shaded.protobuf.generated.FSProtos.Reference.newBuilder()
           .setSplitkey(ByteString.copyFrom(info.getReference().getSplitKey()))
@@ -222,44 +221,26 @@ class FileBasedStoreFileTracker extends StoreFileTrackerBase {
   @Override
   public HFileLink createHFileLink(TableName linkedTable, String linkedRegion, String hfileName,
     boolean createBackRef) throws IOException {
-    // String name = HFileLink.createHFileLinkName(linkedTable, linkedRegion, hfileName);
     FileSystem fs = ctx.getRegionFileSystem().getFileSystem();
     HFileLink hfileLink = HFileLink.build(conf, linkedTable, linkedRegion,
       ctx.getFamily().getNameAsString(), hfileName);
-    StoreFileInfo storeFileInfo =
-      new StoreFileInfo(conf, fs, new Path(ctx.getFamilyStoreDirectoryPath(),
-        HFileLink.createHFileLinkName(linkedTable, linkedRegion, hfileName)), hfileLink);
-    // Path backRefPath = null;
+    Path backRefPath = null;
     if (createBackRef) {
-      // TODO: this should be done as part of commit
       Path archiveStoreDir = HFileArchiveUtil.getStoreArchivePath(conf, linkedTable, linkedRegion,
         ctx.getFamily().getNameAsString());
       Path backRefssDir = HFileLink.getBackReferencesDir(archiveStoreDir, hfileName);
       fs.mkdirs(backRefssDir);
-
       // Create the reference for the link
       String refName = HFileLink.createBackReferenceName(ctx.getTableName().toString(),
         ctx.getRegionInfo().getEncodedName());
-      Path backRefPath = new Path(backRefssDir, refName);
+      backRefPath = new Path(backRefssDir, refName);
       fs.createNewFile(backRefPath);
-    }
-    try {
-      // TODO do not add to SFT as of now
-      add(Collections.singletonList(storeFileInfo));
-    } catch (Exception e) {
-      // LOG.error("couldn't create the link=" + name + " for " + ctx.getFamilyStoreDirectoryPath(),
-      // e);
-      // // Revert the reference if the link creation failed
-      // if (createBackRef) {
-      // fs.delete(backRefPath, false);
-      // }
     }
     return hfileLink;
   }
 
   @Override
   public Reference createReference(Reference reference, Path path) throws IOException {
-    // NOOP
     return reference;
   }
 

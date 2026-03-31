@@ -364,7 +364,6 @@ public class TestHRegionReplayEvents {
     // compaction from primary
     LOG.info("-- Compacting primary, only 1 store");
     primaryRegion.compactStore(Bytes.toBytes("cf1"), NoLimitThroughputController.INSTANCE);
-    System.out.println("primary region name - " + primaryRegion.getRegionInfo().getEncodedName());
 
     // now replay the edits and the flush marker
     reader = createWALReaderForPrimary();
@@ -425,21 +424,12 @@ public class TestHRegionReplayEvents {
         // after replay verify that everything is still visible
         verifyData(secondaryRegion, 0, lastReplayed + 1, cq, families);
       } else if (compactionDesc != null) {
-        System.out
-          .println("secondary region name - " + secondaryRegion.getRegionInfo().getEncodedName());
         secondaryRegion.replayWALCompactionMarker(compactionDesc, true, false, Long.MAX_VALUE);
 
         // assert that the compaction is applied
         for (HStore store : secondaryRegion.getStores()) {
           StoreFileTracker sft =
             StoreFileTrackerFactory.create(CONF, false, store.getStoreContext());
-          HStore primatryStore = primaryRegion.getStore("cf1".getBytes());
-          StoreFileTracker primarysft =
-            StoreFileTrackerFactory.create(CONF, false, primatryStore.getStoreContext());
-          System.out
-            .println("is it actually marked primary - " + primatryStore.isPrimaryReplicaStore());
-          System.out
-            .println("files in primary sft load post compaction - " + primarysft.load().size());
           if (store.getColumnFamilyName().equals("cf1")) {
             System.out.println("files in secondary region - " + sft.load());
             assertEquals(1, store.getStorefilesCount());

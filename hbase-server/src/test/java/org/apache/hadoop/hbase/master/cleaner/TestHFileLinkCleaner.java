@@ -154,7 +154,6 @@ public class TestHFileLinkCleaner {
     hfileLink =
       sft.createHFileLink(hri.getTable(), hri.getEncodedName(), hfileName, createBackReference);
     hfileLinkName = hfileName;
-
     linkBackRefDir = HFileLink.getBackReferencesDir(archiveStoreDir, hfileName);
     assertTrue(fs.exists(linkBackRefDir));
     backRefs = fs.listStatus(linkBackRefDir);
@@ -207,13 +206,6 @@ public class TestHFileLinkCleaner {
     HStoreFile storeFile =
       new HStoreFile(new StoreFileInfo(conf, fs, linkPath, hfileLink), BloomType.NONE, null);
     sft.removeStoreFiles(Collections.singletonList(storeFile));
-
-    // Delete attempts
-    // Path archiveLinkDir = HFileArchiveUtil.getStoreArchivePath(conf, tableLinkName,
-    // hriLink.getEncodedName(), familyName);
-    // Path archivedHFileLink = new Path(archiveLinkDir, hfileLinkName);
-    // fs.delete(archivedHFileLink, false);
-    // fs.delete(new Path(familyLinkPath, hfileLinkName), false);
 
     cleaner.chore();
     assertFalse("Link should be deleted", fs.exists(linkBackRef));
