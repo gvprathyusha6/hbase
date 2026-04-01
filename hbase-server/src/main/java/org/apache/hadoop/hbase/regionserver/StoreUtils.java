@@ -187,11 +187,11 @@ public final class StoreUtils {
 
   public static List<HStoreFile> toHStoreFile(List<StoreFileInfo> storeFileInfoList,
     BloomType bloomType, CacheConfig cacheConf) throws IOException {
-	  List<HStoreFile> hStoreFiles = new ArrayList<HStoreFile>();
-	  for (StoreFileInfo storeFileInfo : storeFileInfoList) {
-	    hStoreFiles.add(new HStoreFile(storeFileInfo, bloomType, cacheConf));
-	  }
-	  return hStoreFiles;
+    List<HStoreFile> hStoreFiles = new ArrayList<HStoreFile>();
+    for (StoreFileInfo storeFileInfo : storeFileInfoList) {
+      hStoreFiles.add(new HStoreFile(storeFileInfo, bloomType, cacheConf));
+    }
+    return hStoreFiles;
   }
 
   public static long getTotalUncompressedBytes(List<HStoreFile> files) {
