@@ -18,6 +18,7 @@
 package org.apache.hadoop.hbase.regionserver;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -185,10 +186,12 @@ public final class StoreUtils {
   }
 
   public static List<HStoreFile> toHStoreFile(List<StoreFileInfo> storeFileInfoList,
-    BloomType bloomType, CacheConfig cacheConf) {
-    return storeFileInfoList.stream()
-      .map(storeFileInfo -> new HStoreFile(storeFileInfo, bloomType, cacheConf))
-      .collect(Collectors.toList());
+    BloomType bloomType, CacheConfig cacheConf) throws IOException {
+	  List<HStoreFile> hStoreFiles = new ArrayList<HStoreFile>();
+	  for (StoreFileInfo storeFileInfo : storeFileInfoList) {
+	    hStoreFiles.add(new HStoreFile(storeFileInfo, bloomType, cacheConf));
+	  }
+	  return hStoreFiles;
   }
 
   public static long getTotalUncompressedBytes(List<HStoreFile> files) {
