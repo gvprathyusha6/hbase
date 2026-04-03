@@ -32,9 +32,14 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.CommonFSUtils;
 import org.apache.hadoop.hbase.util.FSUtils;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RestoreSnapshotFromClientSchemaChangeTestBase
   extends RestoreSnapshotFromClientTestBase {
+
+  private static final Logger LOG =
+    LoggerFactory.getLogger(RestoreSnapshotFromClientSchemaChangeTestBase.class);
 
   private Set<String> getFamiliesFromFS(final TableName tableName) throws IOException {
     MasterFileSystem mfs = TEST_UTIL.getMiniHBaseCluster().getMaster().getMasterFileSystem();
