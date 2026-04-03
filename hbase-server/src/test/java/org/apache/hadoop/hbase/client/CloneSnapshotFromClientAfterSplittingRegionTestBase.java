@@ -29,9 +29,13 @@ import org.apache.hadoop.hbase.master.assignment.RegionStates;
 import org.apache.hadoop.hbase.snapshot.SnapshotTestingUtils;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 public class CloneSnapshotFromClientAfterSplittingRegionTestBase
   extends CloneSnapshotFromClientTestBase {
+
+  private static final org.slf4j.Logger LOG =
+    LoggerFactory.getLogger(CloneSnapshotFromClientTestBase.class);
 
   private void splitRegion() throws IOException {
     try (Table k = TEST_UTIL.getConnection().getTable(tableName);
@@ -57,7 +61,6 @@ public class CloneSnapshotFromClientAfterSplittingRegionTestBase
 
       // Take a snapshot
       admin.snapshot(snapshotName2, tableName);
-
       // Clone the snapshot to another table
       TableName clonedTableName =
         TableName.valueOf(getValidMethodName() + "-" + EnvironmentEdgeManager.currentTime());
